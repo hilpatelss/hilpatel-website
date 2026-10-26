@@ -1,0 +1,39 @@
+# Python / Django
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.env
+db.sqlite3
+db.sqlite3-journal
+staticfiles/
+
+# Node / React
+node_modules/
+dist/
+dist-ssr/
+*.local
+.npm
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Media Uploads (keep directory structure, ignore user files)
+media/*
+!media/.gitkeep
+
+# IDEs & System
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
