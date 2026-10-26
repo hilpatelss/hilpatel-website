@@ -1,25 +1,57 @@
 import os
-from django.core.management.base import BaseCommand
+
+from django.core.management.base import BaseCommand, CommandError
 from django.contrib.auth import get_user_model
 
-class Command(BaseCommand):
-    help = "Creates a default superuser if none exists."
 
-    def add_arguments(self, parser):
-        parser.add_argument('--username', default=os.getenv('ADMIN_USERNAME', 'admin'))
-        parser.add_argument('--email', default=os.getenv('ADMIN_EMAIL', 'hilpatelss@gmail.com'))
-        parser.add_argument('--password', default=os.getenv('ADMIN_PASSWORD', 'admin12345'))
+class Command(BaseCommand):
+    help = "Creates a production superuser when explicitly enabled."
 
     def handle(self, *args, **options):
-        User = get_user_model()
-        username = options['username']
-        email = options['email']
-        password = options['password']
+        enabled = os.getenv("CREATE_ADMIN_ON_DEPLOY", "").lower()
 
-        if User.objects.filter(username=username).exists():
-            self.stdout.write(self.style.WARNING(f"Superuser '{username}' already exists."))
+        if enabled not in ("true", "1", "yes"):
+            self.stdout.write(
+                "Admin creation is disabled. No account changes made."
+            )
             return
 
-        User.objects.create_superuser(username=username, email=email, password=password)
-        self.stdout.write(self.style.SUCCESS(f"✓ Superuser '{username}' created successfully! (password: {password})"))
+        username = os.getenv("ADMIN_USERNAME", "").strip()
+        email = os.getenv("ADMIN_EMAIL", "").strip()
+        password = os.getenv("ADMIN_PASSWORD", "")
 
+        if not username or not email or not password:
+            raise CommandError(
+                "Set ADMIN_USERNAME, ADMIN_EMAIL, and ADMIN_PASSWORD "
+                "in the deployment environment."
+            )
+
+        User = get_user_model()
+        user = User.objects.filter(username=username).first()
+
+        if user:
+            if user.is_superuser:
+                self.stdout.write(
+                    self.style.WARNING(
+                        f"Superuser '{username}' already exists. "
+                        "No changes made."
+                    )
+                )
+                return
+
+            raise CommandError(
+                f"Username '{username}' already belongs to a non-superuser. "
+                "Choose a different ADMIN_USERNAME."
+            )
+
+        User.objects.create_superuser(
+            username=username,
+            email=email,
+            password=password,
+        )
+
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"Superuser '{username}' created successfully."
+            )
+        )
