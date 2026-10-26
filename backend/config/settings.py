@@ -14,14 +14,28 @@ load_dotenv(BASE_DIR / '.env')
 sys.path.insert(0, str(BASE_DIR / 'apps'))
 
 # Core security settings
-SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-hil-patel-portfolio-dev-secret-key-2026')
-DEBUG = os.getenv('DEBUG', 'True').lower() in ('true', '1', 'yes')
+# Core security settings
+SECRET_KEY = os.getenv('SECRET_KEY')
+
+if not SECRET_KEY:
+    raise ValueError("SECRET_KEY environment variable is required")
+
+DEBUG = os.getenv('DEBUG', 'False').lower() in ('true', '1', 'yes')
 
 ALLOWED_HOSTS = [
     host.strip()
-    for host in os.getenv('ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
+    for host in os.getenv(
+        'ALLOWED_HOSTS',
+        '127.0.0.1,localhost'
+    ).split(',')
     if host.strip()
 ]
+
+# Automatically allow the Render hostname
+RENDER_EXTERNAL_HOSTNAME = os.getenv('RENDER_EXTERNAL_HOSTNAME')
+
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
 # Application definition
 INSTALLED_APPS = [
