@@ -128,12 +128,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# Serve static files through WhiteNoise
-MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
-    # Keep the rest of your existing middleware below
-]
+
 
 # Media files (User uploads: project thumbnails, screenshots, resumes, certificates)
 MEDIA_URL = '/media/'
