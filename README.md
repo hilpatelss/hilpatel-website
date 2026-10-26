@@ -115,9 +115,6 @@ Open `http://localhost:5173` in your browser. The frontend will automatically co
 
 ## Django Admin CMS Capabilities
 
-Log in to `http://127.0.0.1:8000/admin/` with:
-* **Username:** `admin`
-* **Password:** `admin12345` (update in production!)
 
 ### 1. Global Website & Hero Settings (`Site Global Settings`)
 * **Identity:** Change owner name, professional headline, location, and contact email.
