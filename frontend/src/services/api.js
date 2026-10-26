@@ -1,8 +1,12 @@
-const BASE_URL = import.meta.env.VITE_API_URL || 'https://api.hilpatel.site/api/v1';
+const rawBaseUrl = import.meta.env.VITE_API_URL || 'https://api.hilpatel.site/api/v1';
+const BASE_URL = rawBaseUrl.replace(/\/+$/, '');
 
 async function request(endpoint, options = {}) {
-  const url = `${BASE_URL}${endpoint}`;
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  const url = `${BASE_URL}${cleanEndpoint}`;
   const config = {
+    // Avoid caching dynamic CMS content so admin updates appear on refresh
+    cache: 'no-cache',
     headers: {
       'Content-Type': 'application/json',
       ...options.headers,

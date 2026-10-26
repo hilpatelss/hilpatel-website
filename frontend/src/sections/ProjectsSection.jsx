@@ -42,76 +42,82 @@ export function ProjectsSection({ projects, site, sectionConfig }) {
       </div>
 
       <div className="projects-list">
-        {projects?.map((p, i) => {
-          const repoUrl = p.repository_url || site?.github_url || "https://github.com/hilpatelss";
-          const repoLabel = p.repository_url ? "View repository" : "View GitHub profile";
+        {projects?.length > 0 ? (
+          projects.map((p, i) => {
+            const repoUrl = p.repository_url || site?.github_url || "https://github.com/hilpatelss";
+            const repoLabel = p.repository_url ? "View repository" : "View GitHub profile";
 
-          return (
-            <article className="project-card reveal" key={p.id || p.number || i}>
-              <div className="project-number">{p.number}</div>
+            return (
+              <article className="project-card reveal" key={p.id || p.number || i}>
+                <div className="project-number">{p.number || `0${i + 1}`}</div>
 
-              <div className="project-content">
-                <div className="project-topline">
-                  <span className="project-type">{p.category_name}</span>
-                  <div className="tag-list">
-                    {p.tags?.map((t) => (
-                      <span key={t}>{t}</span>
-                    ))}
+                <div className="project-content">
+                  <div className="project-topline">
+                    <span className="project-type">{p.category_name}</span>
+                    <div className="tag-list">
+                      {p.tags?.map((t) => (
+                        <span key={t}>{t}</span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <h3>{p.title}</h3>
+                  <p>{p.short_description}</p>
+
+                  {p.highlights?.length > 0 && (
+                    <ul>
+                      {p.highlights.map((h, hIdx) => (
+                        <li key={hIdx}>
+                          <Check size={14} />
+                          {h}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+
+                  <a
+                    className="text-link"
+                    href={repoUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {repoLabel} <ExternalLink size={14} />
+                  </a>
+                </div>
+
+                <div className="project-art">
+                  <div className="art-top">
+                    <span>PROJECT / {p.number || `0${i + 1}`}</span>
+                    {renderProjectIcon(p.icon_name)}
+                  </div>
+
+                  <div className={`art-graphic art-${(i % 3) + 1}`}>
+                    <DynamicArtGraphic project={p} index={i} />
+                  </div>
+
+                  <div className="art-footer">
+                    <span>ANALYTICS / BUILD</span>
+                    <span>↗</span>
                   </div>
                 </div>
-
-                <h3>{p.title}</h3>
-                <p>{p.short_description}</p>
-
-                {p.highlights?.length > 0 && (
-                  <ul>
-                    {p.highlights.map((h, hIdx) => (
-                      <li key={hIdx}>
-                        <Check size={14} />
-                        {h}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-
-                <a
-                  className="text-link"
-                  href={repoUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {repoLabel} <ExternalLink size={14} />
-                </a>
-              </div>
-
-              <div className="project-art">
-                <div className="art-top">
-                  <span>PROJECT / {p.number}</span>
-                  {renderProjectIcon(p.icon_name)}
-                </div>
-
-                <div className={`art-graphic art-${i + 1}`}>
-                  <DynamicArtGraphic project={p} index={i} />
-                </div>
-
-                <div className="art-footer">
-                  <span>ANALYTICS / BUILD</span>
-                  <span>↗</span>
-                </div>
-              </div>
-            </article>
-          );
-        })}
+              </article>
+            );
+          })
+        ) : (
+          <div className="empty-state reveal" style={{ padding: '3rem 1rem', textAlign: 'center', opacity: 0.8 }}>
+            <p>No published projects found at the moment.</p>
+          </div>
+        )}
       </div>
 
-      <div className="project-disclaimer reveal">
-        <span className="note-mark">i</span>
-        <p>
-          Two dashboard repositories are linked. The Smart Bill Management System
-          repository was not identifiable in the public repositories reviewed, so its
-          card links to your GitHub profile until you provide the exact URL.
-        </p>
-      </div>
+      {projects?.some((p) => !p.repository_url) && (
+        <div className="project-disclaimer reveal">
+          <span className="note-mark">i</span>
+          <p>
+            Repositories with private or pending codebases link to the GitHub profile until an individual repository URL is published in Django Admin.
+          </p>
+        </div>
+      )}
     </section>
   );
 }

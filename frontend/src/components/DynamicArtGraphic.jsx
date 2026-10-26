@@ -1,8 +1,8 @@
 import React from 'react';
 
 export function DynamicArtGraphic({ project, index = 0 }) {
-  // If a custom image was uploaded and art_type is custom_image, render the image
-  if (project.custom_art_type === 'custom_image' && project.thumbnail_url) {
+  // If an uploaded thumbnail exists and art type is custom_image or not explicitly a chart
+  if (project.thumbnail_url && (project.custom_art_type === 'custom_image' || !project.custom_art_type)) {
     return (
       <img
         src={project.thumbnail_url}
@@ -13,8 +13,11 @@ export function DynamicArtGraphic({ project, index = 0 }) {
     );
   }
 
+  // Determine chart style: respect project's explicit setting first, otherwise rotate based on index
+  const artType = project.custom_art_type || (index % 3 === 0 ? 'kpi_bars' : index % 3 === 1 ? 'donut_chart' : 'billing_chart');
+
   // Type 1: KPI bars (Digital Wellbeing style)
-  if (project.custom_art_type === 'kpi_bars' || index === 0) {
+  if (artType === 'kpi_bars') {
     return (
       <>
         <div className="mini-kpis">
@@ -42,7 +45,7 @@ export function DynamicArtGraphic({ project, index = 0 }) {
   }
 
   // Type 2: Donut & Sparkline (BMI & Risk style)
-  if (project.custom_art_type === 'donut_chart' || index === 1) {
+  if (artType === 'donut_chart') {
     return (
       <>
         <div className="donut-row">

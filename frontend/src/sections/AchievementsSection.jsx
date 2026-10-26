@@ -32,16 +32,22 @@ export function AchievementsSection({ achievements, sectionConfig }) {
       </div>
 
       <div className="achievement-grid reveal">
-        {achievements?.map((item, idx) => (
-          <article key={item.id || idx}>
-            <span className="achievement-no">{item.achievement_number || `0${idx + 1}`}</span>
-            <div className="achievement-icon">
-              {renderIcon(item.icon_name)}
-            </div>
-            <h3>{item.title}</h3>
-            <p>{item.description}</p>
-          </article>
-        ))}
+        {achievements?.length > 0 ? (
+          achievements.map((item, idx) => (
+            <article key={item.id || idx}>
+              <span className="achievement-no">{item.achievement_number || `0${idx + 1}`}</span>
+              <div className="achievement-icon">
+                {renderIcon(item.icon_name)}
+              </div>
+              <h3>{item.title}</h3>
+              <p>{item.description}</p>
+            </article>
+          ))
+        ) : (
+          <div className="empty-state" style={{ padding: '2rem 0', opacity: 0.7, gridColumn: '1 / -1' }}>
+            <p>No achievements listed at this time.</p>
+          </div>
+        )}
       </div>
     </section>
   );

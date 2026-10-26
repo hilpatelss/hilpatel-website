@@ -55,22 +55,28 @@ export function SkillsSection({ skills, sectionConfig }) {
         </div>
 
         <div className="skill-groups reveal">
-          {skills?.map((s, i) => (
-            <div className="skill-group" key={s.id || s.name || i}>
-              <div className="skill-group-head">
-                <span>0{i + 1}</span>
-                <h3>{s.name}</h3>
-                <span className="skill-count">
-                  {String(s.items?.length || 0).padStart(2, '0')} TOOLS
-                </span>
+          {skills?.length > 0 ? (
+            skills.map((s, i) => (
+              <div className="skill-group" key={s.id || s.name || i}>
+                <div className="skill-group-head">
+                  <span>0{i + 1}</span>
+                  <h3>{s.name}</h3>
+                  <span className="skill-count">
+                    {String(s.items?.length || 0).padStart(2, '0')} TOOLS
+                  </span>
+                </div>
+                <div className="skill-pills">
+                  {s.items?.map((item) => (
+                    <span key={item}>{item}</span>
+                  ))}
+                </div>
               </div>
-              <div className="skill-pills">
-                {s.items?.map((item) => (
-                  <span key={item}>{item}</span>
-                ))}
-              </div>
+            ))
+          ) : (
+            <div className="empty-state" style={{ padding: '2rem 0', opacity: 0.7 }}>
+              <p>No skills configured at this time.</p>
             </div>
-          ))}
+          )}
         </div>
       </div>
     </section>

@@ -22,19 +22,25 @@ if not SECRET_KEY:
 
 DEBUG = os.getenv('DEBUG', 'False').lower() in ('true', '1', 'yes')
 
+ALLOWED_HOSTS_RAW = os.getenv(
+    'ALLOWED_HOSTS',
+    '127.0.0.1,localhost,api.hilpatel.site,.onrender.com'
+)
 ALLOWED_HOSTS = [
     host.strip()
-    for host in os.getenv(
-        'ALLOWED_HOSTS',
-        '127.0.0.1,localhost'
-    ).split(',')
+    for host in ALLOWED_HOSTS_RAW.split(',')
     if host.strip()
 ]
+
+# Ensure production API hostname and Render domains are always allowed
+for host in ['api.hilpatel.site', '.onrender.com']:
+    if host not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(host)
 
 # Automatically allow the Render hostname
 RENDER_EXTERNAL_HOSTNAME = os.getenv('RENDER_EXTERNAL_HOSTNAME')
 
-if RENDER_EXTERNAL_HOSTNAME:
+if RENDER_EXTERNAL_HOSTNAME and RENDER_EXTERNAL_HOSTNAME not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
 # Application definition
@@ -141,17 +147,36 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
 # CORS Settings
 CORS_ALLOWED_ORIGINS_RAW = os.getenv(
     'CORS_ALLOWED_ORIGINS',
-    'http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000,http://127.0.0.1:3000'
+    'https://hilpatel.site,https://www.hilpatel.site,http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000,http://127.0.0.1:3000'
 )
 CORS_ALLOWED_ORIGINS = [
     origin.strip()
     for origin in CORS_ALLOWED_ORIGINS_RAW.split(',')
     if origin.strip()
 ]
+# Ensure production frontend origins are always permitted
+for origin in ['https://hilpatel.site', 'https://www.hilpatel.site']:
+    if origin not in CORS_ALLOWED_ORIGINS:
+        CORS_ALLOWED_ORIGINS.append(origin)
+
 CORS_ALLOW_CREDENTIALS = True
 if DEBUG:
     # Allow localhost on any port during local development
     CORS_ALLOW_ALL_ORIGINS = True
+
+# CSRF Trusted Origins (Required for Django 4+ with HTTPS admin & forms)
+CSRF_TRUSTED_ORIGINS_RAW = os.getenv(
+    'CSRF_TRUSTED_ORIGINS',
+    'https://hilpatel.site,https://www.hilpatel.site,https://api.hilpatel.site'
+)
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in CSRF_TRUSTED_ORIGINS_RAW.split(',')
+    if origin.strip()
+]
+for origin in ['https://hilpatel.site', 'https://www.hilpatel.site', 'https://api.hilpatel.site']:
+    if origin not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(origin)
 
 # Django REST Framework configuration
 REST_FRAMEWORK = {

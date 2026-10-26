@@ -244,24 +244,92 @@ export function usePortfolioData() {
       const resolved = { ...DEFAULT_FALLBACKS };
 
       if (bootstrap.status === 'fulfilled' && bootstrap.value) {
-        if (bootstrap.value.site) resolved.site = bootstrap.value.site;
-        if (bootstrap.value.design) resolved.design = bootstrap.value.design;
-        if (bootstrap.value.navigation?.length) resolved.navigation = bootstrap.value.navigation;
-        if (bootstrap.value.sections?.length) resolved.sections = bootstrap.value.sections;
-        if (bootstrap.value.hero_metrics?.length) resolved.hero_metrics = bootstrap.value.hero_metrics;
+        if (bootstrap.value.site) {
+          resolved.site = { ...DEFAULT_FALLBACKS.site, ...bootstrap.value.site };
+        }
+        if (bootstrap.value.design) {
+          resolved.design = { ...DEFAULT_FALLBACKS.design, ...bootstrap.value.design };
+        }
+        if (Array.isArray(bootstrap.value.navigation)) {
+          resolved.navigation = bootstrap.value.navigation;
+        }
+        if (Array.isArray(bootstrap.value.sections)) {
+          resolved.sections = bootstrap.value.sections;
+        }
+        if (Array.isArray(bootstrap.value.hero_metrics)) {
+          resolved.hero_metrics = bootstrap.value.hero_metrics;
+        }
       }
 
-      if (projects.status === 'fulfilled' && projects.value?.length) resolved.projects = projects.value;
-      if (skills.status === 'fulfilled' && skills.value?.length) resolved.skills = skills.value;
-      if (education.status === 'fulfilled' && education.value?.length) resolved.education = education.value;
-      if (certifications.status === 'fulfilled' && certifications.value?.length) resolved.certifications = certifications.value;
-      if (achievements.status === 'fulfilled' && achievements.value?.length) resolved.achievements = achievements.value;
-      if (ticker.status === 'fulfilled' && ticker.value?.length) resolved.ticker = ticker.value.map(t => t.text);
-      if (aboutStats.status === 'fulfilled' && aboutStats.value?.length) resolved.about_stats = aboutStats.value;
+      // Dynamic data mapping from Django CMS (preserves fallback only if API request failed)
+      if (projects.status === 'fulfilled') {
+        const projectItems = Array.isArray(projects.value)
+          ? projects.value
+          : (projects.value?.results || []);
+        resolved.projects = projectItems;
+      }
+
+      if (skills.status === 'fulfilled') {
+        const skillItems = Array.isArray(skills.value)
+          ? skills.value
+          : (skills.value?.results || []);
+        resolved.skills = skillItems;
+      }
+
+      if (education.status === 'fulfilled') {
+        const eduItems = Array.isArray(education.value)
+          ? education.value
+          : (education.value?.results || []);
+        resolved.education = eduItems;
+      }
+
+      if (certifications.status === 'fulfilled') {
+        const certItems = Array.isArray(certifications.value)
+          ? certifications.value
+          : (certifications.value?.results || []);
+        resolved.certifications = certItems;
+      }
+
+      if (achievements.status === 'fulfilled') {
+        const achItems = Array.isArray(achievements.value)
+          ? achievements.value
+          : (achievements.value?.results || []);
+        resolved.achievements = achItems;
+      }
+
+      if (ticker.status === 'fulfilled') {
+        const tickerItems = Array.isArray(ticker.value)
+          ? ticker.value
+          : (ticker.value?.results || []);
+        resolved.ticker = tickerItems.map((t) => (typeof t === 'string' ? t : t.text || ''));
+      }
+
+      if (aboutStats.status === 'fulfilled') {
+        const statItems = Array.isArray(aboutStats.value)
+          ? aboutStats.value
+          : (aboutStats.value?.results || []);
+        resolved.about_stats = statItems;
+      }
 
       setData(resolved);
       const currentTheme = document.documentElement.dataset.theme || 'dark';
       applyDesignTokens(resolved.design, currentTheme);
+
+      const allRejected = [
+        bootstrap,
+        projects,
+        skills,
+        education,
+        certifications,
+        achievements,
+        ticker,
+        aboutStats,
+      ].every((res) => res.status === 'rejected');
+
+      if (allRejected) {
+        console.warn("Django API unreachable, continuing with fallback portfolio data.");
+        setError(new Error("Backend API unreachable"));
+      }
     } catch (err) {
       console.warn("Failed to reach Django API, using presentation fallbacks:", err);
       setError(err);

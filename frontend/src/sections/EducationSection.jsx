@@ -18,22 +18,28 @@ export function EducationSection({ education, sectionConfig }) {
       </div>
 
       <div className="timeline">
-        {education?.map((e, i) => (
-          <article className="timeline-item reveal" key={e.id || e.degree || i}>
-            <div className="timeline-marker">
-              <GraduationCap size={18} />
-            </div>
-            <div className="timeline-year">{e.year_display}</div>
-            <div className="timeline-content">
-              <span className="timeline-count">EDUCATION / 0{i + 1}</span>
-              <h3>{e.degree}</h3>
-              <h4>{e.field_of_study}</h4>
-              <p>{e.institution}</p>
-              <small>{e.detail}</small>
-            </div>
-            <span className="timeline-badge">{e.badge_text || 'COMPLETED'}</span>
-          </article>
-        ))}
+        {education?.length > 0 ? (
+          education.map((e, i) => (
+            <article className="timeline-item reveal" key={e.id || e.degree || i}>
+              <div className="timeline-marker">
+                <GraduationCap size={18} />
+              </div>
+              <div className="timeline-year">{e.year_display}</div>
+              <div className="timeline-content">
+                <span className="timeline-count">EDUCATION / 0{i + 1}</span>
+                <h3>{e.degree}</h3>
+                <h4>{e.field_of_study}</h4>
+                <p>{e.institution}</p>
+                <small>{e.detail}</small>
+              </div>
+              <span className="timeline-badge">{e.badge_text || 'COMPLETED'}</span>
+            </article>
+          ))
+        ) : (
+          <div className="empty-state reveal" style={{ padding: '2rem 0', opacity: 0.7 }}>
+            <p>No education history listed at this time.</p>
+          </div>
+        )}
       </div>
     </section>
   );
