@@ -16,13 +16,24 @@ class Command(BaseCommand):
             )
             return
 
-        username = os.getenv("ADMIN_USERNAME", "").strip()
-        email = os.getenv("ADMIN_EMAIL", "").strip()
-        password = os.getenv("ADMIN_PASSWORD", "")
+        username = (
+            os.getenv("ADMIN_USERNAME", "").strip()
+            or os.getenv("DJANGO_SUPERUSER_USERNAME", "").strip()
+        )
+        email = (
+            os.getenv("ADMIN_EMAIL", "").strip()
+            or os.getenv("DJANGO_SUPERUSER_EMAIL", "").strip()
+        )
+        password = (
+            os.getenv("ADMIN_PASSWORD", "")
+            or os.getenv("DJANGO_SUPERUSER_PASSWORD", "")
+        )
 
         if not username or not email or not password:
             raise CommandError(
-                "Set ADMIN_USERNAME, ADMIN_EMAIL, and ADMIN_PASSWORD "
+                "Set ADMIN_USERNAME (or DJANGO_SUPERUSER_USERNAME), "
+                "ADMIN_EMAIL (or DJANGO_SUPERUSER_EMAIL), and "
+                "ADMIN_PASSWORD (or DJANGO_SUPERUSER_PASSWORD) "
                 "in the deployment environment."
             )
 
