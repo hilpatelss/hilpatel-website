@@ -180,16 +180,38 @@ export function LoadingScreen({
       aria-label="Loading portfolio"
     >
       <div className="ai-loader-container">
-        {/* Modern Animated Multi-Ring Glowing Loader */}
-        <div className="modern-animated-loader" aria-hidden="true">
-          <div className="loader-ripple ripple-1" />
-          <div className="loader-ripple ripple-2" />
-          <div className="loader-ring-wrap">
-            <span className="loader-ring-outer" />
-            <span className="loader-ring-mid" />
-            <span className="loader-ring-inner" />
-            <span className="loader-glowing-core" />
-          </div>
+        {/* High-Performance Smoothly Spinning Modern Loader */}
+        <div className="brand-spinner-container" aria-hidden="true">
+          <svg className="brand-spinner-svg" viewBox="0 0 50 50">
+            <defs>
+              <linearGradient id="brand-spinner-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="var(--spinner-c1, #00f0ff)" />
+                <stop offset="50%" stopColor="var(--spinner-c2, #10b981)" />
+                <stop offset="100%" stopColor="var(--spinner-c3, #06b6d4)" />
+              </linearGradient>
+            </defs>
+            {/* Background circular track */}
+            <circle
+              className="brand-spinner-track"
+              cx="25"
+              cy="25"
+              r="20"
+              fill="none"
+              strokeWidth="3.5"
+            />
+            {/* High-contrast animated spinning arc */}
+            <circle
+              className="brand-spinner-arc"
+              cx="25"
+              cy="25"
+              r="20"
+              fill="none"
+              stroke="url(#brand-spinner-gradient)"
+              strokeWidth="4"
+              strokeLinecap="round"
+            />
+          </svg>
+          <div className="brand-spinner-pulsar" />
         </div>
 
         {/* Loading Message with Typewriter Effect and Blinking Cursor */}

@@ -1863,107 +1863,82 @@ button {
   text-align: center;
 }
 
-/* Modern Animated Loader (Multi-Ring Orbit with Breathing Core & Expanding Ripples) */
-.modern-animated-loader {
+/* ==========================================================================
+   High-Performance Spinning Brand Loader (Unmistakable Smooth Animation)
+   ========================================================================== */
+.brand-spinner-container {
   position: relative;
-  width: 90px;
-  height: 90px;
+  width: 68px;
+  height: 68px;
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 0 auto clamp(1.8rem, 3.8vh, 2.8rem);
 }
 
-/* Ambient Radial Glow Pulse */
-.loader-ripple {
-  position: absolute;
-  border-radius: 50%;
-  pointer-events: none;
-  border: 1.5px solid transparent;
+.brand-spinner-svg {
+  width: 60px;
+  height: 60px;
+  display: block;
+  transform-origin: 50% 50%;
+  animation: spinnerRotate 1.1s linear infinite !important;
 }
 
-.ripple-1 {
-  width: 82px;
-  height: 82px;
-  animation: ripplePulse 2.4s ease-out infinite;
+.brand-spinner-track {
+  stroke: rgba(0, 240, 255, 0.14);
+  transition: stroke 0.3s ease;
 }
 
-.ripple-2 {
-  width: 82px;
-  height: 82px;
-  animation: ripplePulse 2.4s ease-out infinite 1.2s;
+.brand-spinner-arc {
+  stroke-dasharray: 85, 200;
+  stroke-dashoffset: 0;
+  transform-origin: 50% 50%;
+  animation: spinnerDash 1.4s ease-in-out infinite !important;
 }
 
-/* Spinner Rings Container */
-.loader-ring-wrap {
-  position: relative;
-  width: 64px;
-  height: 64px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Outer Spinning Comet Ring */
-.loader-ring-outer {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  border: 3px solid transparent;
-  animation: spinOuter 1.1s cubic-bezier(0.55, 0.15, 0.45, 0.85) infinite;
-}
-
-/* Middle Counter-Rotating Ring */
-.loader-ring-mid {
-  position: absolute;
-  inset: 7px;
-  border-radius: 50%;
-  border: 2.5px solid transparent;
-  animation: spinMid 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite reverse;
-}
-
-/* Inner Quick-Pulsing Orbit */
-.loader-ring-inner {
-  position: absolute;
-  inset: 15px;
-  border-radius: 50%;
-  border: 2px solid transparent;
-  animation: spinInner 2s linear infinite;
-}
-
-/* Center Glowing Breathing Core */
-.loader-glowing-core {
+.brand-spinner-pulsar {
   position: absolute;
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  animation: coreBreathe 1.5s ease-in-out infinite alternate;
+  background: var(--spinner-c2, #10b981);
+  box-shadow: 0 0 12px var(--spinner-c2, #10b981), 0 0 24px rgba(0, 240, 255, 0.7);
+  animation: pulsarBreathe 1.5s ease-in-out infinite alternate !important;
 }
 
-@keyframes spinOuter {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+@keyframes spinnerRotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
-@keyframes spinMid {
-  0% { transform: rotate(360deg); }
-  100% { transform: rotate(0deg); }
+@keyframes spinnerDash {
+  0% {
+    stroke-dasharray: 1, 200;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 90, 200;
+    stroke-dashoffset: -35px;
+  }
+  100% {
+    stroke-dasharray: 90, 200;
+    stroke-dashoffset: -125px;
+  }
 }
 
-@keyframes spinInner {
-  0% { transform: rotate(0deg) scale(0.92); }
-  50% { transform: rotate(180deg) scale(1.08); }
-  100% { transform: rotate(360deg) scale(0.92); }
-}
-
-@keyframes coreBreathe {
-  0% { transform: scale(0.75); opacity: 0.6; }
-  100% { transform: scale(1.3); opacity: 1; }
-}
-
-@keyframes ripplePulse {
-  0% { transform: scale(0.65); opacity: 0.8; }
-  100% { transform: scale(1.45); opacity: 0; }
+@keyframes pulsarBreathe {
+  0% {
+    transform: scale(0.7);
+    opacity: 0.55;
+  }
+  100% {
+    transform: scale(1.3);
+    opacity: 1;
+  }
 }
 
 /* Loading Message Wrap & Typewriter */
@@ -2062,38 +2037,19 @@ button {
 :root[data-theme="dark"] .ai-loader-overlay,
 .ai-loader-overlay[data-theme="dark"] {
   background-color: #0a0d14;
+  --spinner-c1: #00f0ff;
+  --spinner-c2: #10b981;
+  --spinner-c3: #06b6d4;
 }
 
-:root[data-theme="dark"] .loader-ring-outer,
-.ai-loader-overlay[data-theme="dark"] .loader-ring-outer {
-  border-top-color: #00f0ff;
-  border-right-color: #10b981;
-  box-shadow: 0 0 20px rgba(0, 240, 255, 0.4), inset 0 0 10px rgba(16, 185, 129, 0.25);
+:root[data-theme="dark"] .brand-spinner-track,
+.ai-loader-overlay[data-theme="dark"] .brand-spinner-track {
+  stroke: rgba(0, 240, 255, 0.14);
 }
 
-:root[data-theme="dark"] .loader-ring-mid,
-.ai-loader-overlay[data-theme="dark"] .loader-ring-mid {
-  border-top-color: #e026de;
-  border-left-color: #00f0ff;
-  box-shadow: 0 0 16px rgba(224, 38, 222, 0.4);
-}
-
-:root[data-theme="dark"] .loader-ring-inner,
-.ai-loader-overlay[data-theme="dark"] .loader-ring-inner {
-  border-bottom-color: #10b981;
-  border-right-color: #00f0ff;
-}
-
-:root[data-theme="dark"] .loader-glowing-core,
-.ai-loader-overlay[data-theme="dark"] .loader-glowing-core {
-  background: #10b981;
-  box-shadow: 0 0 12px #10b981, 0 0 24px rgba(0, 240, 255, 0.75);
-}
-
-:root[data-theme="dark"] .loader-ripple,
-.ai-loader-overlay[data-theme="dark"] .loader-ripple {
-  border-color: rgba(0, 240, 255, 0.4);
-  box-shadow: 0 0 16px rgba(16, 185, 129, 0.25);
+:root[data-theme="dark"] .brand-spinner-svg,
+.ai-loader-overlay[data-theme="dark"] .brand-spinner-svg {
+  filter: drop-shadow(0 0 12px rgba(0, 240, 255, 0.45));
 }
 
 :root[data-theme="dark"] .ai-loader-message,
@@ -2173,38 +2129,19 @@ button {
 :root[data-theme="light"] .ai-loader-overlay,
 .ai-loader-overlay[data-theme="light"] {
   background-color: #f8fafc;
+  --spinner-c1: #0284c7;
+  --spinner-c2: #059669;
+  --spinner-c3: #0284c7;
 }
 
-:root[data-theme="light"] .loader-ring-outer,
-.ai-loader-overlay[data-theme="light"] .loader-ring-outer {
-  border-top-color: #0284c7;
-  border-right-color: #059669;
-  box-shadow: 0 0 16px rgba(2, 132, 199, 0.35);
+:root[data-theme="light"] .brand-spinner-track,
+.ai-loader-overlay[data-theme="light"] .brand-spinner-track {
+  stroke: rgba(2, 132, 199, 0.15);
 }
 
-:root[data-theme="light"] .loader-ring-mid,
-.ai-loader-overlay[data-theme="light"] .loader-ring-mid {
-  border-top-color: #7c3aed;
-  border-left-color: #0284c7;
-  box-shadow: 0 0 12px rgba(124, 58, 237, 0.3);
-}
-
-:root[data-theme="light"] .loader-ring-inner,
-.ai-loader-overlay[data-theme="light"] .loader-ring-inner {
-  border-bottom-color: #059669;
-  border-right-color: #0284c7;
-}
-
-:root[data-theme="light"] .loader-glowing-core,
-.ai-loader-overlay[data-theme="light"] .loader-glowing-core {
-  background: #059669;
-  box-shadow: 0 0 10px #059669, 0 0 20px rgba(2, 132, 199, 0.5);
-}
-
-:root[data-theme="light"] .loader-ripple,
-.ai-loader-overlay[data-theme="light"] .loader-ripple {
-  border-color: rgba(2, 132, 199, 0.3);
-  box-shadow: 0 0 12px rgba(5, 150, 105, 0.15);
+:root[data-theme="light"] .brand-spinner-svg,
+.ai-loader-overlay[data-theme="light"] .brand-spinner-svg {
+  filter: drop-shadow(0 0 8px rgba(2, 132, 199, 0.35));
 }
 
 :root[data-theme="light"] .ai-loader-message,
