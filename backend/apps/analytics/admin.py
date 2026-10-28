@@ -5,19 +5,24 @@ from .models import VisitorLog
 class VisitorLogAdmin(admin.ModelAdmin):
     list_display = (
         'created_at',
+        'location_display',
         'path',
         'active_theme',
         'device_category',
-        'screen_resolution',
         'ip_address',
     )
     list_filter = (
         'active_theme',
         'device_category',
+        'country',
         'created_at',
     )
     search_fields = (
         'path',
+        'location_display',
+        'city',
+        'country',
+        'timezone',
         'ip_address',
         'user_agent',
     )
@@ -26,6 +31,13 @@ class VisitorLogAdmin(admin.ModelAdmin):
     readonly_fields = (
         'created_at',
         'updated_at',
+        'location_display',
+        'city',
+        'region',
+        'country',
+        'timezone',
+        'latitude',
+        'longitude',
         'path',
         'device_category',
         'screen_resolution',

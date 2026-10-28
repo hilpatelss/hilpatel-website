@@ -82,12 +82,47 @@ export async function logVisitorVisit(activeTheme, customPath) {
 
   // 5. Fire asynchronous request with strict timeout
   try {
+    // Collect rough timezone location (always available without permission)
+    let timezone = '';
+    try {
+      if (typeof Intl !== 'undefined' && Intl.DateTimeFormat) {
+        timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+      }
+    } catch (e) {}
+
+    // Check if exact GPS was already granted (never trigger an annoying prompt)
+    let latitude = null;
+    let longitude = null;
+    if (typeof navigator !== 'undefined' && 'permissions' in navigator && 'geolocation' in navigator) {
+      try {
+        const perm = await navigator.permissions.query({ name: 'geolocation' });
+        if (perm.state === 'granted') {
+          const pos = await new Promise((resolve) => {
+            navigator.geolocation.getCurrentPosition(
+              (p) => resolve(p),
+              () => resolve(null),
+              { timeout: 1200, maximumAge: 300000 }
+            );
+          });
+          if (pos && pos.coords) {
+            latitude = Number(pos.coords.latitude.toFixed(6));
+            longitude = Number(pos.coords.longitude.toFixed(6));
+          }
+        }
+      } catch (e) {
+        // Safe fallback: non-blocking
+      }
+    }
+
     const payload = {
       path: currentPath,
       device_category: detectDeviceCategory(),
       screen_resolution: getScreenResolution(),
       active_theme: normalizedTheme,
       referrer: (typeof document !== 'undefined' && document.referrer) ? document.referrer.slice(0, 500) : '',
+      timezone,
+      latitude,
+      longitude,
     };
 
     const controller = new AbortController();

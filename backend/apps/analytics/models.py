@@ -63,6 +63,51 @@ class VisitorLog(TimeStampedModel):
         default='',
         help_text="Referring URL if provided"
     )
+    city = models.CharField(
+        max_length=100,
+        blank=True,
+        default='',
+        help_text="Detected city name (rough location)"
+    )
+    region = models.CharField(
+        max_length=100,
+        blank=True,
+        default='',
+        help_text="Detected state / region"
+    )
+    country = models.CharField(
+        max_length=100,
+        blank=True,
+        default='',
+        db_index=True,
+        help_text="Detected country or country code"
+    )
+    timezone = models.CharField(
+        max_length=100,
+        blank=True,
+        default='',
+        help_text="Client timezone (e.g. Asia/Kolkata)"
+    )
+    latitude = models.DecimalField(
+        max_digits=9,
+        decimal_places=6,
+        null=True,
+        blank=True,
+        help_text="Exact latitude if permitted and available"
+    )
+    longitude = models.DecimalField(
+        max_digits=9,
+        decimal_places=6,
+        null=True,
+        blank=True,
+        help_text="Exact longitude if permitted and available"
+    )
+    location_display = models.CharField(
+        max_length=255,
+        blank=True,
+        default='',
+        help_text="Human-readable location summary (exact GPS or rough City/Region/Country/Timezone)"
+    )
 
     class Meta:
         verbose_name = 'Visitor Log'
@@ -72,6 +117,7 @@ class VisitorLog(TimeStampedModel):
             models.Index(fields=['-created_at', 'active_theme']),
             models.Index(fields=['-created_at', 'device_category']),
             models.Index(fields=['path', '-created_at']),
+            models.Index(fields=['country', '-created_at']),
         ]
 
     def __str__(self):

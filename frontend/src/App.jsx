@@ -93,6 +93,7 @@ function PortfolioApp() {
           error={error}
           onRetry={refetch}
           onReadyToDismiss={() => setIsLoaderFinished(true)}
+          theme={theme}
         />
       )}
 

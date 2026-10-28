@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { getPersistedTheme } from '../context/ThemeContext';
 
 const LOADING_MESSAGES = [
   "Analyzing the data behind the scenes...",
@@ -26,14 +27,48 @@ const LOADING_MESSAGES = [
   "Almost ready to turn curiosity into discovery...",
   "Syncing the data for a smoother experience...",
   "Thanks for your patience. Your portfolio is getting ready...",
+  "Mapping your portfolio into place...",
+  "Warming up the data pipeline...",
+  "Aligning insights with the latest updates...",
+  "Checking the connections powering this page...",
+  "Preparing your project highlights...",
+  "Calibrating the details for a clearer view...",
+  "Fetching the latest information from the source...",
+  "Bringing your portfolio components online...",
+  "Verifying the data before it appears...",
+  "Organizing skills, projects, and milestones...",
+  "Setting the stage for meaningful insights...",
+  "Bringing the important details into focus...",
+  "Connecting the interface to fresh data...",
+  "Checking that your latest content is ready...",
+  "Shaping data into a smoother experience...",
+  "Running the final synchronization...",
+  "Your next discovery is on its way...",
+  "Making sure every detail lines up...",
+  "Preparing a clearer view of the work...",
+  "Refreshing the information behind this page...",
+  "Bringing your latest updates into view...",
+  "Fine-tuning the experience, one detail at a time...",
+  "Checking the data flow from end to end...",
+  "Loading the work behind the results...",
+  "Almost ready to explore...",
 ];
 
-export function LoadingScreen({ apiStatus = 'pending', error = null, onRetry, onReadyToDismiss }) {
+export function LoadingScreen({
+  apiStatus = 'pending',
+  error = null,
+  onRetry,
+  onReadyToDismiss,
+  theme,
+}) {
   const [sessionKey, setSessionKey] = useState(0);
   const [displayedText, setDisplayedText] = useState('');
   const [isTypingComplete, setIsTypingComplete] = useState(false);
   const [isDismissing, setIsDismissing] = useState(false);
   const [hasWaited10s, setHasWaited10s] = useState(false);
+
+  // Read theme directly from prop or persisted cookie/storage
+  const activeTheme = theme || getPersistedTheme();
 
   const startTimeRef = useRef(Date.now());
   const typingCompleteTimeRef = useRef(null);
@@ -58,10 +93,10 @@ export function LoadingScreen({ apiStatus = 'pending', error = null, onRetry, on
     setIsDismissing(false);
     setHasWaited10s(false);
 
-    // Wait exactly 10s after loading / refresh before displaying Failed to fetch message
+    // Wait exactly 10s before showing polite status guidance if server takes longer
     const waitTimer = setTimeout(() => {
       setHasWaited10s(true);
-    }, 15000);
+    }, 10000);
 
     return () => clearTimeout(waitTimer);
   }, [sessionKey]);
@@ -125,157 +160,35 @@ export function LoadingScreen({ apiStatus = 'pending', error = null, onRetry, on
     window.location.reload();
   };
 
-  // Only display the failed message after 10s of waiting if API has not succeeded
+  const handleProceed = () => {
+    setIsDismissing(true);
+    setTimeout(() => {
+      if (onReadyToDismissRef.current) {
+        onReadyToDismissRef.current();
+      }
+    }, 550);
+  };
+
+  // Only display the status guidance after 10s of waiting if API has not succeeded
   const showFailedState = hasWaited10s && apiStatus !== 'success';
 
   return (
     <aside
       className={`ai-loader-overlay ${isDismissing ? 'fade-out' : ''}`}
+      data-theme={activeTheme}
       aria-live="polite"
       aria-label="Loading portfolio"
     >
       <div className="ai-loader-container">
-        {/* Only One Loader: The Top Animated Liquid Glowing Orb */}
-        <div className="ai-liquid-orb-stage">
-          {/* Ambient Breathing Glow Aura */}
-          <div className="ai-liquid-aura" aria-hidden="true" />
-
-          {/* Liquid Glass Orb Container */}
-          <div className="ai-liquid-orb">
-            <svg
-              className="ai-liquid-svg"
-              viewBox="0 0 100 100"
-              xmlns="http://www.w3.org/2000/svg"
-              aria-hidden="true"
-            >
-              <defs>
-                <linearGradient id="ai-grad-cyan" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#00f0ff" />
-                  <stop offset="60%" stopColor="#0284c7" />
-                  <stop offset="100%" stopColor="#10b981" />
-                </linearGradient>
-                <linearGradient id="ai-grad-magenta" x1="100%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor="#ff007f" />
-                  <stop offset="55%" stopColor="#e026de" />
-                  <stop offset="100%" stopColor="#8b5cf6" />
-                </linearGradient>
-                <linearGradient id="ai-grad-violet" x1="0%" y1="100%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#9d00ff" />
-                  <stop offset="50%" stopColor="#00f0ff" />
-                  <stop offset="100%" stopColor="#e026de" />
-                </linearGradient>
-                <radialGradient id="ai-grad-core" cx="50%" cy="50%" r="50%">
-                  <stop offset="0%" stopColor="#00f0ff" />
-                  <stop offset="45%" stopColor="#8b5cf6" />
-                  <stop offset="85%" stopColor="#e026de" />
-                  <stop offset="100%" stopColor="#0284c7" />
-                </radialGradient>
-                <filter id="ai-liquid-goo" x="-25%" y="-25%" width="150%" height="150%">
-                  <feGaussianBlur in="SourceGraphic" stdDeviation="5.5" result="blur" />
-                  <feColorMatrix
-                    in="blur"
-                    mode="matrix"
-                    values="1 0 0 0 0
-                            0 1 0 0 0
-                            0 0 1 0 0
-                            0 0 0 19 -8"
-                    result="goo"
-                  />
-                  <feBlend in="SourceGraphic" in2="goo" />
-                </filter>
-              </defs>
-              <g filter="url(#ai-liquid-goo)">
-                {/* Central Breathing Liquid Core */}
-                <circle cx="50" cy="50" r="22" fill="url(#ai-grad-core)">
-                  <animate
-                    attributeName="r"
-                    values="19; 25; 20; 26; 19"
-                    dur="4.5s"
-                    repeatCount="indefinite"
-                  />
-                </circle>
-
-                {/* Flowing Fluid Drop 1 (Cyan/Blue Orbiting Ellipse) */}
-                <ellipse cx="50" cy="34" rx="14" ry="17" fill="url(#ai-grad-cyan)">
-                  <animateTransform
-                    attributeName="transform"
-                    type="rotate"
-                    from="0 50 50"
-                    to="360 50 50"
-                    dur="4s"
-                    repeatCount="indefinite"
-                  />
-                  <animate
-                    attributeName="rx"
-                    values="13; 17; 11; 15; 13"
-                    dur="3s"
-                    repeatCount="indefinite"
-                  />
-                </ellipse>
-
-                {/* Flowing Fluid Drop 2 (Magenta/Purple Orbiting Ellipse) */}
-                <ellipse cx="50" cy="66" rx="16" ry="13" fill="url(#ai-grad-magenta)">
-                  <animateTransform
-                    attributeName="transform"
-                    type="rotate"
-                    from="0 50 50"
-                    to="-360 50 50"
-                    dur="5.2s"
-                    repeatCount="indefinite"
-                  />
-                  <animate
-                    attributeName="ry"
-                    values="13; 18; 12; 17; 13"
-                    dur="3.8s"
-                    repeatCount="indefinite"
-                  />
-                </ellipse>
-
-                {/* Floating Satellite Bubble 3 (Violet/Cyan) */}
-                <circle cx="33" cy="50" r="12" fill="url(#ai-grad-violet)">
-                  <animateTransform
-                    attributeName="transform"
-                    type="rotate"
-                    from="0 50 50"
-                    to="360 50 50"
-                    dur="3.4s"
-                    repeatCount="indefinite"
-                  />
-                </circle>
-
-                {/* Floating Satellite Bubble 4 (Cyan/Emerald) */}
-                <circle cx="67" cy="50" r="11" fill="url(#ai-grad-cyan)">
-                  <animateTransform
-                    attributeName="transform"
-                    type="rotate"
-                    from="0 50 50"
-                    to="-360 50 50"
-                    dur="4.2s"
-                    repeatCount="indefinite"
-                  />
-                </circle>
-
-                {/* Floating Morphing Blob 5 (Central organic wobble) */}
-                <ellipse cx="50" cy="50" rx="15" ry="21" fill="url(#ai-grad-magenta)">
-                  <animateTransform
-                    attributeName="transform"
-                    type="rotate"
-                    from="30 50 50"
-                    to="390 50 50"
-                    dur="6.5s"
-                    repeatCount="indefinite"
-                  />
-                  <animate
-                    attributeName="ry"
-                    values="19; 14; 22; 15; 19"
-                    dur="4s"
-                    repeatCount="indefinite"
-                  />
-                </ellipse>
-              </g>
-            </svg>
-            {/* Specular glass reflection */}
-            <div className="ai-liquid-sheen" aria-hidden="true" />
+        {/* Modern Animated Multi-Ring Glowing Loader */}
+        <div className="modern-animated-loader" aria-hidden="true">
+          <div className="loader-ripple ripple-1" />
+          <div className="loader-ripple ripple-2" />
+          <div className="loader-ring-wrap">
+            <span className="loader-ring-outer" />
+            <span className="loader-ring-mid" />
+            <span className="loader-ring-inner" />
+            <span className="loader-glowing-core" />
           </div>
         </div>
 
@@ -287,17 +200,35 @@ export function LoadingScreen({ apiStatus = 'pending', error = null, onRetry, on
           </p>
         </div>
 
-        {/* Wait 10s after loading / refresh to display Failed to fetch box */}
+        {/* Three Glowing Pulsing Dots Beneath Message */}
+        <div className="ai-loader-dots" aria-hidden="true">
+          <span className="ai-dot ai-dot-1" />
+          <span className="ai-dot ai-dot-2" />
+          <span className="ai-dot ai-dot-3" />
+        </div>
+
+        {/* Non-blocking Status & Guidance (Only after 10s wait state) */}
         {showFailedState && (
-          <div className="ai-loader-error-box" role="alert">
-            <p className="ai-error-text">Failed to fetch</p>
-            <div className="ai-slow-actions">
+          <div className="ai-loader-status-card" role="alert">
+            <p className="ai-status-text">
+              {apiStatus === 'error'
+                ? "Connecting to backend is taking a little longer (Render free tier wakes in ~30-50s)."
+                : "Still initializing server connection... Thank you for your patience."}
+            </p>
+            <div className="ai-status-actions">
               <button
                 type="button"
                 className="ai-action-btn ai-retry-btn"
                 onClick={handleRetry}
               >
                 Retry Connection
+              </button>
+              <button
+                type="button"
+                className="ai-action-btn ai-proceed-btn"
+                onClick={handleProceed}
+              >
+                Explore Portfolio →
               </button>
               <button
                 type="button"

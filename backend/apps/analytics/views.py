@@ -64,10 +64,46 @@ class VisitorLogView(APIView):
             if device == 'unknown' and user_agent:
                 device = fallback_device_detection(user_agent)
 
+            # 4. Extract rough or exact location metadata (Cloudflare headers or client payload)
+            cf_city = (request.META.get('HTTP_CF_IPCITY') or '').strip()
+            cf_region = (request.META.get('HTTP_CF_REGION') or '').strip()
+            cf_country = (request.META.get('HTTP_CF_IPCOUNTRY') or '').strip()
+            cf_timezone = (request.META.get('HTTP_CF_TIMEZONE') or '').strip()
+
+            city = (serializer.validated_data.get('city') or cf_city)[:100]
+            region = (serializer.validated_data.get('region') or cf_region)[:100]
+            country = (serializer.validated_data.get('country') or cf_country)[:100]
+            timezone = (serializer.validated_data.get('timezone') or cf_timezone)[:100]
+            latitude = serializer.validated_data.get('latitude')
+            longitude = serializer.validated_data.get('longitude')
+
+            # Build human-readable location summary (GPS if available, else rough location or timezone)
+            loc_parts = [p for p in [city, region, country] if p]
+            rough_loc = ", ".join(loc_parts)
+
+            if latitude is not None and longitude is not None:
+                if rough_loc:
+                    location_display = f"{rough_loc} (GPS: {float(latitude):.4f}, {float(longitude):.4f})"[:255]
+                else:
+                    location_display = f"GPS: {float(latitude):.4f}, {float(longitude):.4f}"[:255]
+            elif rough_loc:
+                location_display = rough_loc[:255]
+            elif timezone:
+                location_display = timezone[:255]
+            else:
+                location_display = "Unknown"
+
             serializer.save(
                 ip_address=ip,
                 user_agent=user_agent,
                 device_category=device,
+                city=city,
+                region=region,
+                country=country,
+                timezone=timezone,
+                latitude=latitude,
+                longitude=longitude,
+                location_display=location_display,
             )
             return Response({"status": "logged"}, status=status.HTTP_201_CREATED)
         except Exception as exc:

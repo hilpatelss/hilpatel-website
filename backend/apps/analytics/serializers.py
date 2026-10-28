@@ -7,6 +7,13 @@ class VisitorLogSerializer(serializers.ModelSerializer):
     screen_resolution = serializers.CharField(required=False, default='unknown')
     active_theme = serializers.CharField(required=False, default='unknown')
     referrer = serializers.CharField(required=False, default='', allow_blank=True)
+    city = serializers.CharField(required=False, default='', allow_blank=True)
+    region = serializers.CharField(required=False, default='', allow_blank=True)
+    country = serializers.CharField(required=False, default='', allow_blank=True)
+    timezone = serializers.CharField(required=False, default='', allow_blank=True)
+    latitude = serializers.DecimalField(max_digits=9, decimal_places=6, required=False, allow_null=True, default=None)
+    longitude = serializers.DecimalField(max_digits=9, decimal_places=6, required=False, allow_null=True, default=None)
+    location_display = serializers.CharField(required=False, default='', allow_blank=True)
 
     class Meta:
         model = VisitorLog
@@ -16,6 +23,13 @@ class VisitorLogSerializer(serializers.ModelSerializer):
             'screen_resolution',
             'active_theme',
             'referrer',
+            'city',
+            'region',
+            'country',
+            'timezone',
+            'latitude',
+            'longitude',
+            'location_display',
         ]
 
     def validate_path(self, value):

@@ -104,3 +104,69 @@ class VisitorLogTests(TestCase):
             response = self.client.post(self.log_url, payload, format='json')
             self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
             self.assertIn('error', response.data)
+
+    def test_record_rough_location(self):
+        payload = {
+            "path": "/",
+            "device_category": "desktop",
+            "screen_resolution": "1920x1080",
+            "active_theme": "dark",
+            "city": "Ahmedabad",
+            "region": "Gujarat",
+            "country": "IN",
+            "timezone": "Asia/Kolkata"
+        }
+        response = self.client.post(self.log_url, payload, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        
+        log = VisitorLog.objects.latest('created_at')
+        self.assertEqual(log.city, "Ahmedabad")
+        self.assertEqual(log.region, "Gujarat")
+        self.assertEqual(log.country, "IN")
+        self.assertEqual(log.timezone, "Asia/Kolkata")
+        self.assertIn("Ahmedabad", log.location_display)
+        self.assertIn("Gujarat", log.location_display)
+        self.assertIn("IN", log.location_display)
+
+    def test_record_exact_location(self):
+        payload = {
+            "path": "/#skills",
+            "device_category": "mobile",
+            "screen_resolution": "390x844",
+            "active_theme": "light",
+            "city": "Gandhinagar",
+            "country": "IN",
+            "latitude": 23.215635,
+            "longitude": 72.636941
+        }
+        response = self.client.post(self.log_url, payload, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        
+        log = VisitorLog.objects.latest('created_at')
+        self.assertEqual(float(log.latitude), 23.215635)
+        self.assertEqual(float(log.longitude), 72.636941)
+        self.assertIn("GPS:", log.location_display)
+
+    def test_cloudflare_geo_headers_fallback(self):
+        payload = {
+            "path": "/#projects",
+            "device_category": "desktop",
+            "screen_resolution": "2560x1440",
+            "active_theme": "dark"
+        }
+        response = self.client.post(
+            self.log_url,
+            payload,
+            format='json',
+            HTTP_CF_IPCITY="London",
+            HTTP_CF_REGION="England",
+            HTTP_CF_IPCOUNTRY="GB",
+            HTTP_CF_TIMEZONE="Europe/London"
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        
+        log = VisitorLog.objects.latest('created_at')
+        self.assertEqual(log.city, "London")
+        self.assertEqual(log.country, "GB")
+        self.assertEqual(log.timezone, "Europe/London")
+        self.assertIn("London", log.location_display)
