@@ -1,5 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
+import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { usePortfolioData } from './hooks/usePortfolioData';
+import { logVisitorVisit } from './services/visitorLog';
 import { LoadingScreen } from './components/LoadingScreen';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
@@ -14,24 +16,40 @@ import { AchievementsSection } from './sections/AchievementsSection';
 import { ContactSection } from './sections/ContactSection';
 import './styles/styles.css';
 
-export function App() {
+function PortfolioApp() {
+  const { theme, toggleTheme } = useTheme();
   const { data, loading, error, apiStatus, refetch, applyDesignTokens } = usePortfolioData();
-  const [theme, setTheme] = useState(() => localStorage.getItem('hil-theme') || 'dark');
   const [isLoaderFinished, setIsLoaderFinished] = useState(false);
 
   // Sync theme changes with DOM and DesignSettings CSS variables
   useEffect(() => {
-    document.documentElement.dataset.theme = theme;
-    localStorage.setItem('hil-theme', theme);
     if (data?.design) {
       applyDesignTokens(data.design, theme);
     }
   }, [theme, data?.design, applyDesignTokens]);
 
+  // Record lightweight visitor log asynchronously once ready and on genuine route changes
+  useEffect(() => {
+    // Record initial visit with exact active theme
+    logVisitorVisit(theme);
+
+    const handleRouteChange = () => {
+      logVisitorVisit(theme);
+    };
+
+    window.addEventListener('hashchange', handleRouteChange);
+    window.addEventListener('popstate', handleRouteChange);
+
+    return () => {
+      window.removeEventListener('hashchange', handleRouteChange);
+      window.removeEventListener('popstate', handleRouteChange);
+    };
+  }, [theme]);
+
   // Set up scroll reveal animations once loader is finished and DOM elements are rendered
   useEffect(() => {
     if (!isLoaderFinished) return;
-0
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -49,10 +67,6 @@ export function App() {
 
     return () => observer.disconnect();
   }, [isLoaderFinished, data]);
-
-  const toggleTheme = () => {
-    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
-  };
 
   // Section configuration lookup map
   const sectionConfigs = useMemo(() => {
@@ -155,5 +169,12 @@ export function App() {
   );
 }
 
-export default App;
+export function App() {
+  return (
+    <ThemeProvider>
+      <PortfolioApp />
+    </ThemeProvider>
+  );
+}
 
+export default App;

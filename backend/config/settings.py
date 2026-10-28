@@ -62,6 +62,7 @@ INSTALLED_APPS = [
     'apps.portfolio.apps.PortfolioConfig',
     'apps.projects.apps.ProjectsConfig',
     'apps.contact.apps.ContactConfig',
+    'apps.analytics.apps.AnalyticsConfig',
 ]
 
 MIDDLEWARE = [
@@ -203,10 +204,14 @@ REST_FRAMEWORK = {
         'anon': '100/minute',
         'user': '1000/minute',
         'contact': os.getenv('CONTACT_RATE_LIMIT', '15/hour'),
+        'visitor_log': os.getenv('VISITOR_LOG_RATE_LIMIT', '60/minute'),
     },
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 50,
 }
+
+# Optional Visitor Logging Feature Toggle
+ENABLE_VISITOR_LOGGING = os.getenv('ENABLE_VISITOR_LOGGING', 'True').lower() in ('true', '1', 'yes')
 
 # Email notification configuration
 EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')

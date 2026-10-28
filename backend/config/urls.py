@@ -14,6 +14,7 @@ api_v1_patterns = [
     path('', include('apps.portfolio.urls')),
     path('projects/', include('apps.projects.urls')),
     path('contact/', include('apps.contact.urls')),
+    path('analytics/', include('apps.analytics.urls')),
 ]
 
 urlpatterns = [

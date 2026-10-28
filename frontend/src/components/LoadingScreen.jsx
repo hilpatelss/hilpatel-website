@@ -61,7 +61,7 @@ export function LoadingScreen({ apiStatus = 'pending', error = null, onRetry, on
     // Wait exactly 10s after loading / refresh before displaying Failed to fetch message
     const waitTimer = setTimeout(() => {
       setHasWaited10s(true);
-    }, 10000);
+    }, 15000);
 
     return () => clearTimeout(waitTimer);
   }, [sessionKey]);
