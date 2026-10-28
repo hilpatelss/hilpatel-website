@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { usePortfolioData } from './hooks/usePortfolioData';
+import { LoadingScreen } from './components/LoadingScreen';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { HeroSection } from './sections/HeroSection';
@@ -14,8 +15,9 @@ import { ContactSection } from './sections/ContactSection';
 import './styles/styles.css';
 
 export function App() {
-  const { data, loading, applyDesignTokens } = usePortfolioData();
+  const { data, loading, error, apiStatus, refetch, applyDesignTokens } = usePortfolioData();
   const [theme, setTheme] = useState(() => localStorage.getItem('hil-theme') || 'dark');
+  const [isLoaderFinished, setIsLoaderFinished] = useState(false);
 
   // Sync theme changes with DOM and DesignSettings CSS variables
   useEffect(() => {
@@ -26,8 +28,10 @@ export function App() {
     }
   }, [theme, data?.design, applyDesignTokens]);
 
-  // Set up scroll reveal animations
+  // Set up scroll reveal animations once loader is finished and DOM elements are rendered
   useEffect(() => {
+    if (!isLoaderFinished) return;
+0
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -44,7 +48,7 @@ export function App() {
     elements.forEach((el) => observer.observe(el));
 
     return () => observer.disconnect();
-  }, [data]);
+  }, [isLoaderFinished, data]);
 
   const toggleTheme = () => {
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
@@ -68,73 +72,86 @@ export function App() {
   };
 
   return (
-    <div className="site-shell">
-      <Navbar
-        site={data.site}
-        navigation={data.navigation}
-        theme={theme}
-        onToggleTheme={toggleTheme}
-      />
+    <>
+      {!isLoaderFinished && (
+        <LoadingScreen
+          apiStatus={apiStatus}
+          error={error}
+          onRetry={refetch}
+          onReadyToDismiss={() => setIsLoaderFinished(true)}
+        />
+      )}
 
-      <main>
-        <HeroSection site={data.site} heroMetrics={data.hero_metrics} />
-
-        <TickerSection items={data.ticker} />
-
-        {isSectionVisible('about') && (
-          <AboutSection
+      {isLoaderFinished && (
+        <div className="site-shell">
+          <Navbar
             site={data.site}
-            stats={data.about_stats}
-            sectionConfig={sectionConfigs['about']}
+            navigation={data.navigation}
+            theme={theme}
+            onToggleTheme={toggleTheme}
           />
-        )}
 
-        {isSectionVisible('projects') && (
-          <ProjectsSection
-            projects={data.projects}
-            site={data.site}
-            sectionConfig={sectionConfigs['projects']}
-          />
-        )}
+          <main>
+            <HeroSection site={data.site} heroMetrics={data.hero_metrics} />
 
-        {isSectionVisible('skills') && (
-          <SkillsSection
-            skills={data.skills}
-            sectionConfig={sectionConfigs['skills']}
-          />
-        )}
+            <TickerSection items={data.ticker} />
 
-        {isSectionVisible('education') && (
-          <EducationSection
-            education={data.education}
-            sectionConfig={sectionConfigs['education']}
-          />
-        )}
+            {isSectionVisible('about') && (
+              <AboutSection
+                site={data.site}
+                stats={data.about_stats}
+                sectionConfig={sectionConfigs['about']}
+              />
+            )}
 
-        {isSectionVisible('certifications') && (
-          <CertificationsSection
-            certifications={data.certifications}
-            sectionConfig={sectionConfigs['certifications']}
-          />
-        )}
+            {isSectionVisible('projects') && (
+              <ProjectsSection
+                projects={data.projects}
+                site={data.site}
+                sectionConfig={sectionConfigs['projects']}
+              />
+            )}
 
-        {isSectionVisible('achievements') && (
-          <AchievementsSection
-            achievements={data.achievements}
-            sectionConfig={sectionConfigs['achievements']}
-          />
-        )}
+            {isSectionVisible('skills') && (
+              <SkillsSection
+                skills={data.skills}
+                sectionConfig={sectionConfigs['skills']}
+              />
+            )}
 
-        {isSectionVisible('contact') && (
-          <ContactSection
-            site={data.site}
-            sectionConfig={sectionConfigs['contact']}
-          />
-        )}
-      </main>
+            {isSectionVisible('education') && (
+              <EducationSection
+                education={data.education}
+                sectionConfig={sectionConfigs['education']}
+              />
+            )}
 
-      <Footer site={data.site} />
-    </div>
+            {isSectionVisible('certifications') && (
+              <CertificationsSection
+                certifications={data.certifications}
+                sectionConfig={sectionConfigs['certifications']}
+              />
+            )}
+
+            {isSectionVisible('achievements') && (
+              <AchievementsSection
+                achievements={data.achievements}
+                sectionConfig={sectionConfigs['achievements']}
+              />
+            )}
+
+            {isSectionVisible('contact') && (
+              <ContactSection
+                site={data.site}
+                sectionConfig={sectionConfigs['contact']}
+              />
+            )}
+          </main>
+
+          <Footer site={data.site} />
+        </div>
+      )}
+    </>
   );
 }
 

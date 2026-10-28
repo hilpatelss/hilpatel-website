@@ -61,6 +61,12 @@ class SiteSettings(SingletonModel):
         null=True,
         help_text="Upload your PDF resume here to automatically serve direct downloads."
     )
+    resume_url = models.CharField(
+        max_length=500,
+        blank=True,
+        default="",
+        help_text="Direct public URL to your hosted resume PDF (e.g. Google Drive, GitHub raw, Cloudinary, AWS S3). Takes priority over ephemeral file uploads."
+    )
     favicon = models.ImageField(
         upload_to=generate_upload_path('favicons'),
         blank=True,

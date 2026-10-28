@@ -33,6 +33,7 @@ class SiteSettingsSerializer(serializers.ModelSerializer):
             'summary_text',
             'about_large_copy',
             'about_body_copy',
+            'resume_url',
             'resume_download_url',
             'profile_image_url',
             'favicon_url',
@@ -50,9 +51,26 @@ class SiteSettingsSerializer(serializers.ModelSerializer):
         ]
 
     def get_resume_download_url(self, obj):
+        # 1. Direct admin-managed URL (best for persistent hosting across free dynos/containers)
+        if getattr(obj, 'resume_url', None) and obj.resume_url.strip():
+            return obj.resume_url.strip()
+
+        # 2. Uploaded resume file (only if file actually exists in storage)
         if obj.resume_file:
-            request = self.context.get('request')
-            return request.build_absolute_uri(obj.resume_file.url) if request else obj.resume_file.url
+            try:
+                if obj.resume_file.storage.exists(obj.resume_file.name):
+                    request = self.context.get('request')
+                    return request.build_absolute_uri(obj.resume_file.url) if request else obj.resume_file.url
+            except Exception:
+                pass
+
+        # 3. Secondary button URL if set to an external or custom link
+        if getattr(obj, 'hero_secondary_button_url', None) and obj.hero_secondary_button_url.strip():
+            url = obj.hero_secondary_button_url.strip()
+            if url and url != '/resume.pdf':
+                return url
+
+        # 4. Local fallback
         return "/resume.pdf"
 
     def get_profile_image_url(self, obj):

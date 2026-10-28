@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 
 export function HeroSection({ site, heroMetrics }) {
-  const resumeUrl = site?.resume_download_url || site?.hero_secondary_button_url || "/resume.pdf";
+  const resumeUrl = site?.resume_download_url || site?.resume_url || site?.hero_secondary_button_url || "/resume.pdf";
 
   // Dynamic icon helper
   const renderIcon = (iconName) => {
@@ -51,7 +51,8 @@ export function HeroSection({ site, heroMetrics }) {
           <a
             className="button button-secondary"
             href={resumeUrl}
-            download
+            target="_blank"
+            rel="noopener noreferrer"
           >
             {site?.hero_secondary_button_text || 'Download resume'} <Download size={16} />
           </a>

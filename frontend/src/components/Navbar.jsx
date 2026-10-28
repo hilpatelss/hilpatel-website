@@ -12,7 +12,7 @@ export function Navbar({ site, navigation, theme, onToggleTheme }) {
     { label: "Certifications", url: "#certifications" },
   ];
 
-  const resumeUrl = site?.resume_download_url || site?.hero_secondary_button_url || "/resume.pdf";
+  const resumeUrl = site?.resume_download_url || site?.resume_url || site?.hero_secondary_button_url || "/resume.pdf";
 
   return (
     <header className="topbar">
@@ -55,7 +55,12 @@ export function Navbar({ site, navigation, theme, onToggleTheme }) {
           {theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}
         </button>
 
-        <a className="resume-small" href={resumeUrl} download>
+        <a
+          className="resume-small"
+          href={resumeUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           Resume <Download size={14} />
         </a>
 

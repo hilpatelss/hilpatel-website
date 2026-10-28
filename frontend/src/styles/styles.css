@@ -1827,3 +1827,265 @@ button {
   }
 }
 
+/* ==========================================================================
+   AI-Style Fluid Orb Loading Screen (Reference Design)
+   ========================================================================== */
+.ai-loader-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999999;
+  background-color: #0a0d14;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  width: 100vw;
+  overflow: hidden;
+  padding: max(24px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left));
+  opacity: 1;
+  transition: opacity 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+  box-sizing: border-box;
+}
+
+.ai-loader-overlay.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.ai-loader-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  max-width: 680px;
+  width: 100%;
+  margin: auto;
+  text-align: center;
+}
+
+/* Fluid Orb Stage */
+.ai-liquid-orb-stage {
+  position: relative;
+  width: clamp(200px, 32vw, 260px);
+  height: clamp(200px, 32vw, 260px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: clamp(1.8rem, 4vh, 2.75rem);
+}
+
+/* Ambient Breathing Glow Aura */
+.ai-liquid-aura {
+  position: absolute;
+  width: clamp(210px, 34vw, 280px);
+  height: clamp(210px, 34vw, 280px);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(224, 38, 222, 0.45) 0%, rgba(0, 240, 255, 0.3) 42%, rgba(16, 185, 129, 0.12) 65%, transparent 75%);
+  filter: blur(28px);
+  z-index: 1;
+  pointer-events: none;
+  animation: liquidAuraPulse 4s ease-in-out infinite alternate;
+}
+
+/* Liquid Glass Orb Container */
+.ai-liquid-orb {
+  position: relative;
+  width: clamp(140px, 22vw, 190px);
+  height: clamp(140px, 22vw, 190px);
+  border-radius: 50%;
+  overflow: hidden;
+  z-index: 2;
+  background: radial-gradient(circle at 50% 50%, #0d111d 0%, #05070d 100%);
+  border-top: 1.5px solid rgba(0, 240, 255, 0.7);
+  border-bottom: 1.5px solid rgba(224, 38, 222, 0.7);
+  box-shadow:
+    0 0 30px rgba(224, 38, 222, 0.5),
+    0 15px 45px rgba(0, 240, 255, 0.35),
+    inset 0 10px 18px rgba(0, 240, 255, 0.35),
+    inset 0 -10px 18px rgba(224, 38, 222, 0.4);
+  animation: orbFloat 4s ease-in-out infinite alternate, liquidColorize 9s ease-in-out infinite alternate;
+}
+
+/* SVG Liquid Canvas */
+.ai-liquid-svg {
+  position: absolute;
+  inset: -6%;
+  width: 112%;
+  height: 112%;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Specular Glass Sheen */
+.ai-liquid-sheen {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 32% 26%,
+    rgba(255, 255, 255, 0.45) 0%,
+    rgba(255, 255, 255, 0.08) 30%,
+    transparent 56%
+  );
+  pointer-events: none;
+  z-index: 5;
+}
+
+@keyframes liquidAuraPulse {
+  0% { transform: scale(0.92); opacity: 0.65; }
+  100% { transform: scale(1.08); opacity: 0.95; }
+}
+
+@keyframes liquidColorize {
+  0%, 100% { filter: hue-rotate(0deg); }
+  50% { filter: hue-rotate(25deg); }
+}
+
+@keyframes orbFloat {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-5px); }
+}
+
+/* Loading Message Wrap & Typewriter */
+.ai-loader-message-wrap {
+  width: 100%;
+  min-height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: clamp(1.2rem, 2.8vh, 1.85rem);
+  padding: 0 16px;
+}
+
+.ai-loader-message {
+  margin: 0;
+  font-family: var(--mono, "DM Mono", monospace);
+  font-size: clamp(14px, 2.2vw, 17px);
+  color: #f8fafc;
+  line-height: 1.6;
+  letter-spacing: 0.02em;
+  text-align: center;
+  word-break: break-word;
+  max-width: clamp(280px, 86vw, 640px);
+}
+
+.ai-loader-cursor {
+  display: inline-block;
+  color: #00f0ff;
+  font-weight: 700;
+  margin-left: 2px;
+  animation: cursorBlink 0.8s infinite;
+}
+
+/* Failed to fetch Box (Shown after 10s wait state) */
+.ai-loader-error-box {
+  margin-top: clamp(1.5rem, 3.2vh, 2.2rem);
+  max-width: 520px;
+  width: calc(100% - 32px);
+  padding: 18px 24px;
+  background: rgba(28, 16, 22, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(248, 113, 113, 0.35);
+  border-radius: 8px;
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.5), 0 0 20px rgba(248, 113, 113, 0.12);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  animation: slowFadeIn 0.35s ease-out;
+}
+
+.ai-error-text {
+  font-family: var(--mono, "DM Mono", monospace);
+  font-size: 14px;
+  color: #f87171;
+  margin: 0;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.ai-slow-actions {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.ai-action-btn {
+  background: transparent;
+  border-radius: 4px;
+  font-family: var(--mono, "DM Mono", monospace);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  padding: 9px 22px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ai-retry-btn {
+  border: 1px solid var(--accent, #10b981);
+  color: var(--accent, #10b981);
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.18);
+}
+
+.ai-retry-btn:hover {
+  background: var(--accent, #10b981);
+  color: #0a0d14;
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.45);
+}
+
+.ai-refresh-btn {
+  border: 1px solid var(--accent2, #06b6d4);
+  color: var(--accent2, #06b6d4);
+  box-shadow: 0 0 12px rgba(6, 182, 212, 0.18);
+}
+
+.ai-refresh-btn:hover {
+  background: var(--accent2, #06b6d4);
+  color: #0a0d14;
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.45);
+}
+
+@keyframes cursorBlink {
+  0%, 49% {
+    opacity: 1;
+  }
+  50%, 100% {
+    opacity: 0;
+  }
+}
+
+@keyframes dotWave {
+  0%, 100% {
+    transform: translateY(0) scale(0.85);
+    opacity: 0.35;
+    box-shadow: 0 0 6px rgba(224, 38, 222, 0.4);
+  }
+  50% {
+    transform: translateY(-6px) scale(1.2);
+    opacity: 1;
+    box-shadow: 0 0 16px rgba(224, 38, 222, 0.9), 0 0 24px rgba(0, 240, 255, 0.6);
+  }
+}
+
+@keyframes slowFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Reduced Motion Override for Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .ai-liquid-orb,
+  .ai-liquid-aura {
+    animation: none !important;
+  }
+}
+

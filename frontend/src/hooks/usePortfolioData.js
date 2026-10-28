@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { api } from '../services/api';
 
 // Safe presentation fallbacks preserving original Hil Patel identity
@@ -187,6 +187,7 @@ export function usePortfolioData() {
   const [data, setData] = useState(DEFAULT_FALLBACKS);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [apiStatus, setApiStatus] = useState('pending'); // 'pending' | 'success' | 'error'
 
   const applyDesignTokens = (design, themeMode = 'dark') => {
     if (!design) return;
@@ -216,9 +217,13 @@ export function usePortfolioData() {
     if (design.border_radius) root.style.setProperty('--radius', design.border_radius);
   };
 
+  const requestIdRef = useRef(0);
+
   const loadData = useCallback(async () => {
+    const currentRequestId = ++requestIdRef.current;
     setLoading(true);
     setError(null);
+    setApiStatus('pending');
     try {
       // Parallel fetch of bootstrap and content
       const [
@@ -240,6 +245,11 @@ export function usePortfolioData() {
         api.getTicker(),
         api.getAboutStats(),
       ]);
+
+      // If a retry or newer fetch was triggered in the meantime, discard stale response
+      if (currentRequestId !== requestIdRef.current) {
+        return;
+      }
 
       const resolved = { ...DEFAULT_FALLBACKS };
 
@@ -326,15 +336,26 @@ export function usePortfolioData() {
         aboutStats,
       ].every((res) => res.status === 'rejected');
 
-      if (allRejected) {
-        console.warn("Django API unreachable, continuing with fallback portfolio data.");
-        setError(new Error("Backend API unreachable"));
+      const isBootstrapValid = bootstrap.status === 'fulfilled' && bootstrap.value && typeof bootstrap.value === 'object' && bootstrap.value.site;
+
+      if (allRejected || !isBootstrapValid) {
+        const failReason = (bootstrap.status === 'rejected' && bootstrap.reason) ||
+          new Error("The backend API could not be reached. (Render service may be waking up)");
+        console.warn("API initialization failed:", failReason);
+        setError(failReason);
+        setApiStatus('error');
+      } else {
+        setApiStatus('success');
       }
     } catch (err) {
+      if (currentRequestId !== requestIdRef.current) return;
       console.warn("Failed to reach Django API, using presentation fallbacks:", err);
       setError(err);
+      setApiStatus('error');
     } finally {
-      setLoading(false);
+      if (currentRequestId === requestIdRef.current) {
+        setLoading(false);
+      }
     }
   }, []);
 
@@ -342,6 +363,6 @@ export function usePortfolioData() {
     loadData();
   }, [loadData]);
 
-  return { data, loading, error, refetch: loadData, applyDesignTokens };
+  return { data, loading, error, apiStatus, refetch: loadData, applyDesignTokens };
 }
 

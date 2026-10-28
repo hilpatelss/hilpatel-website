@@ -12,7 +12,7 @@ class SiteSettingsAdmin(admin.ModelAdmin):
                 "professional_headline",
                 "location",
                 ("email", "phone"),
-                ("profile_image", "resume_file", "favicon"),
+                ("profile_image", "resume_file", "resume_url", "favicon"),
             )
         }),
         ("Social Profiles", {
