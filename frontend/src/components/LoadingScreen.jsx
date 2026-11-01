@@ -58,16 +58,6 @@ const LOADING_MESSAGES = [
   "Almost ready to explore...",
 ];
 
-/**
- * LoadingSpinner Component
- * 
- * Renders a lightweight, hardware-accelerated dual-arc circular loading spinner.
- * Features:
- * - Scoped keyframe animation (@keyframes loader-spin) running at 0.85s linear.
- * - Single-color theme synchronization using emerald accent (--accent).
- * - Translucent background ring track for visual depth.
- * - "!important" flag guarantees animation runs reliably across all browser accessibility modes.
- */
 export function LoadingSpinner({ label = "Loading" }) {
   return (
     <>
@@ -81,24 +71,24 @@ export function LoadingSpinner({ label = "Loading" }) {
           width: 44px;
           height: 44px;
           border-radius: 50%;
-          border: 3.5px solid rgba(0, 113, 227, 0.2);
-          border-top-color: var(--accent, #0071E3);
-          border-right-color: var(--accent, #0071E3);
+          border: 3.5px solid rgba(16, 185, 129, 0.2);
+          border-top-color: var(--accent, #10b981);
+          border-right-color: var(--accent, #10b981);
           animation: loader-spin 0.85s linear infinite !important;
           margin: 0 auto clamp(1.8rem, 3.8vh, 2.8rem);
           box-sizing: border-box;
         }
         [data-theme="light"] .loader-spinner {
-          border-color: rgba(0, 113, 227, 0.2);
-          border-top-color: var(--accent, #0071E3);
-          border-right-color: var(--accent, #0071E3);
-          box-shadow: 0 0 14px rgba(0, 113, 227, 0.28);
+          border-color: rgba(5, 150, 105, 0.2);
+          border-top-color: var(--accent, #059669);
+          border-right-color: var(--accent, #059669);
+          box-shadow: 0 0 12px rgba(5, 150, 105, 0.3);
         }
         [data-theme="dark"] .loader-spinner {
-          border-color: rgba(41, 151, 255, 0.22);
-          border-top-color: var(--accent, #2997FF);
-          border-right-color: var(--accent, #2997FF);
-          box-shadow: 0 0 18px rgba(41, 151, 255, 0.45);
+          border-color: rgba(16, 185, 129, 0.2);
+          border-top-color: var(--accent, #10b981);
+          border-right-color: var(--accent, #10b981);
+          box-shadow: 0 0 16px rgba(16, 185, 129, 0.45);
         }
       `}</style>
       <div className="loader-spinner" role="status" aria-label={label} />
@@ -262,8 +252,17 @@ export function LoadingScreen({
       aria-label="Loading portfolio"
     >
       <div className="ai-loader-container">
-        {/* Animated Single-Color Loading Spinner */}
-        <LoadingSpinner label="Loading portfolio" />
+        {/* Modern Animated Multi-Ring Glowing Loader */}
+        <div className="modern-animated-loader" aria-hidden="true">
+          <div className="loader-ripple ripple-1" />
+          <div className="loader-ripple ripple-2" />
+          <div className="loader-ring-wrap">
+            <span className="loader-ring-outer" />
+            <span className="loader-ring-mid" />
+            <span className="loader-ring-inner" />
+            <span className="loader-glowing-core" />
+          </div>
+        </div>
 
         {/* Loading Message with Typewriter Effect and Blinking Cursor */}
         <div className="ai-loader-message-wrap">

@@ -2034,26 +2034,55 @@ button {
   text-align: center;
 }
 
-/* ==========================================================================
-   Animated Single-Color Loading Spinner
-   ========================================================================== */
-@keyframes loader-spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
+/* Modern Animated Loader (Multi-Ring Orbit with Breathing Core & Expanding Ripples) */
+.modern-animated-loader {
+  position: relative;
+  width: 90px;
+  height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto clamp(1.8rem, 3.8vh, 2.8rem);
 }
 
-.loader-spinner {
-  display: block;
-  width: 44px;
-  height: 44px;
+/* Ambient Radial Glow Pulse */
+.loader-ripple {
+  position: absolute;
   border-radius: 50%;
-  border: 3.5px solid rgba(41, 151, 255, 0.2);
-  border-top-color: var(--accent, #2997FF);
-  border-right-color: var(--accent, #2997FF);
+  pointer-events: none;
+  border: 1.5px solid transparent;
+}
+
+.ripple-1 {
+  width: 82px;
+  height: 82px;
+  animation: ripplePulse 2.4s ease-out infinite;
+}
+
+.ripple-2 {
+  width: 82px;
+  height: 82px;
+  animation: ripplePulse 2.4s ease-out infinite 1.2s;
+}
+
+/* Spinner Rings Container */
+.loader-ring-wrap {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Outer Spinning Comet Ring */
+.loader-ring-outer {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 3.5px solid rgba(16, 185, 129, 0.2);
+  border-top-color: var(--accent, #10b981);
+  border-right-color: var(--accent, #10b981);
   animation: loader-spin 0.85s linear infinite !important;
   margin: 0 auto clamp(1.8rem, 3.8vh, 2.8rem);
   box-sizing: border-box;
@@ -2061,18 +2090,18 @@ button {
 
 :root[data-theme="light"] .loader-spinner,
 .ai-loader-overlay[data-theme="light"] .loader-spinner {
-  border-color: rgba(0, 113, 227, 0.2);
-  border-top-color: var(--accent, #0071E3);
-  border-right-color: var(--accent, #0071E3);
-  box-shadow: 0 0 12px rgba(0, 113, 227, 0.3);
+  border-color: rgba(5, 150, 105, 0.2);
+  border-top-color: var(--accent, #059669);
+  border-right-color: var(--accent, #059669);
+  box-shadow: 0 0 12px rgba(5, 150, 105, 0.3);
 }
 
 :root[data-theme="dark"] .loader-spinner,
 .ai-loader-overlay[data-theme="dark"] .loader-spinner {
-  border-color: rgba(41, 151, 255, 0.2);
-  border-top-color: var(--accent, #2997FF);
-  border-right-color: var(--accent, #2997FF);
-  box-shadow: 0 0 16px rgba(41, 151, 255, 0.45);
+  border-color: rgba(16, 185, 129, 0.2);
+  border-top-color: var(--accent, #10b981);
+  border-right-color: var(--accent, #10b981);
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.45);
 }
 
 /* Loading Message Wrap & Typewriter */
@@ -2177,8 +2206,8 @@ button {
 :root[data-theme="dark"],
 .ai-loader-overlay,
 .ai-loader-overlay[data-theme="dark"] {
-  --spinner-track: rgba(41, 151, 255, 0.2);
-  --spinner-glow: rgba(41, 151, 255, 0.6);
+  --spinner-track: rgba(16, 185, 129, 0.18);
+  --spinner-glow: rgba(16, 185, 129, 0.7);
 }
 
 :root[data-theme="dark"] .ai-loader-message,
@@ -2262,8 +2291,8 @@ button {
 
 :root[data-theme="light"],
 .ai-loader-overlay[data-theme="light"] {
-  --spinner-track: rgba(0, 113, 227, 0.18);
-  --spinner-glow: rgba(0, 113, 227, 0.4);
+  --spinner-track: rgba(5, 150, 105, 0.18);
+  --spinner-glow: rgba(5, 150, 105, 0.4);
 }
 
 :root[data-theme="light"] .ai-loader-message,
