@@ -18,7 +18,6 @@ import { LoadingScreen } from './components/LoadingScreen';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { HeroSection } from './sections/HeroSection';
-import { TickerSection } from './sections/TickerSection';
 import { AboutSection } from './sections/AboutSection';
 import { ProjectsSection } from './sections/ProjectsSection';
 import { SkillsSection } from './sections/SkillsSection';
@@ -126,7 +125,7 @@ function PortfolioApp() {
           <main>
             <HeroSection site={data.site} heroMetrics={data.hero_metrics} />
 
-            <TickerSection items={data.ticker} />
+           
 
             {isSectionVisible('about') && (
               <AboutSection

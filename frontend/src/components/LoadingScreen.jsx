@@ -58,43 +58,6 @@ const LOADING_MESSAGES = [
   "Almost ready to explore...",
 ];
 
-export function LoadingSpinner({ label = "Loading" }) {
-  return (
-    <>
-      <style>{`
-        @keyframes loader-spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-        .loader-spinner {
-          display: block;
-          width: 44px;
-          height: 44px;
-          border-radius: 50%;
-          border: 3.5px solid rgba(16, 185, 129, 0.2);
-          border-top-color: var(--accent, #10b981);
-          border-right-color: var(--accent, #10b981);
-          animation: loader-spin 0.85s linear infinite !important;
-          margin: 0 auto clamp(1.8rem, 3.8vh, 2.8rem);
-          box-sizing: border-box;
-        }
-        [data-theme="light"] .loader-spinner {
-          border-color: rgba(5, 150, 105, 0.2);
-          border-top-color: var(--accent, #059669);
-          border-right-color: var(--accent, #059669);
-          box-shadow: 0 0 12px rgba(5, 150, 105, 0.3);
-        }
-        [data-theme="dark"] .loader-spinner {
-          border-color: rgba(16, 185, 129, 0.2);
-          border-top-color: var(--accent, #10b981);
-          border-right-color: var(--accent, #10b981);
-          box-shadow: 0 0 16px rgba(16, 185, 129, 0.45);
-        }
-      `}</style>
-      <div className="loader-spinner" role="status" aria-label={label} />
-    </>
-  );
-}
 
 /**
  * LoadingScreen Component
@@ -252,17 +215,7 @@ export function LoadingScreen({
       aria-label="Loading portfolio"
     >
       <div className="ai-loader-container">
-        {/* Modern Animated Multi-Ring Glowing Loader */}
-        <div className="modern-animated-loader" aria-hidden="true">
-          <div className="loader-ripple ripple-1" />
-          <div className="loader-ripple ripple-2" />
-          <div className="loader-ring-wrap">
-            <span className="loader-ring-outer" />
-            <span className="loader-ring-mid" />
-            <span className="loader-ring-inner" />
-            <span className="loader-glowing-core" />
-          </div>
-        </div>
+       
 
         {/* Loading Message with Typewriter Effect and Blinking Cursor */}
         <div className="ai-loader-message-wrap">
