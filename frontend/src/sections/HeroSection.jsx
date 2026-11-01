@@ -1,3 +1,12 @@
+/**
+ * Hero Section Component
+ *
+ * Prominent landing view highlighting:
+ * - Live status indicator & kicker.
+ * - Dynamic customizable headline with accented typography.
+ * - Call-to-action buttons (project exploration & resume download).
+ * - Interactive analytics dashboard visualizer graphic with live sparkline.
+ */
 import React from 'react';
 import {
   ArrowRight,

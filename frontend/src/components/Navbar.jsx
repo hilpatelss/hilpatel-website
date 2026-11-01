@@ -1,3 +1,12 @@
+/**
+ * Site Navigation Bar Component
+ *
+ * Features:
+ * - Brand logo badge & monogram with accent dot.
+ * - Dynamic navigation link generation with mobile hamburger drawer.
+ * - Centralized dark/light theme toggle button.
+ * - Direct resume download CTA button.
+ */
 import React, { useState } from 'react';
 import { Download, Sun, Moon, Menu, X, ArrowDownRight } from 'lucide-react';
 

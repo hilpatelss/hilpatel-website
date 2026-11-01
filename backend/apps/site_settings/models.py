@@ -134,43 +134,49 @@ class SiteSettings(SingletonModel):
 
 class DesignSettings(SingletonModel):
     """Editable Design & Theme configurations exposed via API to drive CSS variables dynamically."""
-    theme_name = models.CharField(max_length=50, default="Executive Emerald Slate")
+    theme_name = models.CharField(max_length=50, default="Apple Minimal")
     
     # Accent colors
     accent_color = models.CharField(
         max_length=20, 
-        default="#10b981", 
+        default="#2997FF", 
         validators=[validate_hex_color],
-        help_text="Primary signature accent color (default: #10b981 emerald)."
+        help_text="Primary signature accent color (default: #2997FF Apple Blue in dark, #0071E3 in light)."
     )
     accent2_color = models.CharField(
         max_length=20, 
-        default="#06b6d4", 
+        default="#0071E3", 
         validators=[validate_hex_color],
-        help_text="Secondary accent color (default: #06b6d4 cyan)."
+        help_text="Secondary accent color."
     )
     
-    # Dark Mode Colors
-    dark_bg = models.CharField(max_length=20, default="#0a0d14", validators=[validate_hex_color])
-    dark_surface = models.CharField(max_length=20, default="#111726", validators=[validate_hex_color])
-    dark_surface2 = models.CharField(max_length=20, default="#172033", validators=[validate_hex_color])
-    dark_text = models.CharField(max_length=20, default="#f8fafc", validators=[validate_hex_color])
-    dark_muted = models.CharField(max_length=20, default="#94a3b8", validators=[validate_hex_color])
-    dark_line = models.CharField(max_length=20, default="#1e293b", validators=[validate_hex_color])
+    # Dark Mode Colors (Apple Design System)
+    dark_bg = models.CharField(max_length=20, default="#000000", validators=[validate_hex_color])
+    dark_surface = models.CharField(max_length=20, default="#1C1C1E", validators=[validate_hex_color])
+    dark_surface2 = models.CharField(max_length=20, default="#2C2C2E", validators=[validate_hex_color])
+    dark_text = models.CharField(max_length=20, default="#F5F5F7", validators=[validate_hex_color])
+    dark_muted = models.CharField(max_length=20, default="#A1A1A6", validators=[validate_hex_color])
+    dark_line = models.CharField(max_length=20, default="#38383A", validators=[validate_hex_color])
     
-    # Light Mode Colors
-    light_bg = models.CharField(max_length=20, default="#f8fafc", validators=[validate_hex_color])
-    light_surface = models.CharField(max_length=20, default="#ffffff", validators=[validate_hex_color])
-    light_surface2 = models.CharField(max_length=20, default="#f1f5f9", validators=[validate_hex_color])
-    light_text = models.CharField(max_length=20, default="#0f172a", validators=[validate_hex_color])
-    light_muted = models.CharField(max_length=20, default="#64748b", validators=[validate_hex_color])
-    light_line = models.CharField(max_length=20, default="#e2e8f0", validators=[validate_hex_color])
-    light_accent = models.CharField(max_length=20, default="#059669", validators=[validate_hex_color])
+    # Light Mode Colors (Apple Design System)
+    light_bg = models.CharField(max_length=20, default="#FFFFFF", validators=[validate_hex_color])
+    light_surface = models.CharField(max_length=20, default="#FFFFFF", validators=[validate_hex_color])
+    light_surface2 = models.CharField(max_length=20, default="#F5F5F7", validators=[validate_hex_color])
+    light_text = models.CharField(max_length=20, default="#1D1D1F", validators=[validate_hex_color])
+    light_muted = models.CharField(max_length=20, default="#6E6E73", validators=[validate_hex_color])
+    light_line = models.CharField(max_length=20, default="#D2D2D7", validators=[validate_hex_color])
+    light_accent = models.CharField(max_length=20, default="#0071E3", validators=[validate_hex_color])
     
     # Typography & Appearance
-    font_family_main = models.CharField(max_length=100, default="'Manrope', sans-serif")
-    font_family_mono = models.CharField(max_length=100, default="'DM Mono', monospace")
-    border_radius = models.CharField(max_length=20, default="4px", help_text="e.g. 0px, 4px, 8px")
+    font_family_main = models.CharField(
+        max_length=150,
+        default="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Inter', 'Manrope', sans-serif"
+    )
+    font_family_mono = models.CharField(
+        max_length=150,
+        default="'SF Mono', 'DM Mono', Menlo, Monaco, Consolas, monospace"
+    )
+    border_radius = models.CharField(max_length=20, default="8px", help_text="e.g. 0px, 4px, 8px, 12px")
     enable_animations = models.BooleanField(default=True)
 
     class Meta:

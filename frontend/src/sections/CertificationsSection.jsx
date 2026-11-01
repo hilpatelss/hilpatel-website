@@ -1,3 +1,11 @@
+/**
+ * Certifications Section Component
+ *
+ * Provides:
+ * - Dynamic category filtering pills ("All", "Data Analytics", "Development").
+ * - Real-time keyword search filter across titles, issuers, and categories.
+ * - Credential cards with issuer name, status badges, and verification links.
+ */
 import React, { useState, useMemo } from 'react';
 import { Award, Search, ArrowDownRight, ExternalLink } from 'lucide-react';
 

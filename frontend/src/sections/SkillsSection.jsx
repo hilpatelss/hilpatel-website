@@ -1,3 +1,11 @@
+/**
+ * Technical Skills & Toolkit Section Component
+ *
+ * Displays:
+ * - Interactive UNIX terminal card with simulated CLI outputs.
+ * - Categorized technical skills (Languages, Analysis, Visualization, Databases, Development).
+ * - Individual tool pills with count indicators.
+ */
 import React from 'react';
 
 export function SkillsSection({ skills, sectionConfig }) {

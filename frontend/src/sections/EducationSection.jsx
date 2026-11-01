@@ -1,3 +1,10 @@
+/**
+ * Education Section Component
+ *
+ * Renders chronological academic history in a timeline layout:
+ * - Degree title, field of study, institution, and completion year.
+ * - Timeline markers and completion status badges.
+ */
 import React from 'react';
 import { GraduationCap } from 'lucide-react';
 

@@ -1,9 +1,10 @@
 from django.test import TestCase, override_settings
 from django.urls import reverse
+from django.utils import timezone
 from rest_framework.test import APIClient
 from rest_framework import status
 from django.contrib.auth.models import User
-from apps.analytics.models import VisitorLog
+from apps.analytics.models import VisitorLog, AnalyticsSession, AnalyticsPageView, AnalyticsEvent
 
 class VisitorLogTests(TestCase):
     def setUp(self):
@@ -170,3 +171,128 @@ class VisitorLogTests(TestCase):
         self.assertEqual(log.country, "GB")
         self.assertEqual(log.timezone, "Europe/London")
         self.assertIn("London", log.location_display)
+
+
+class AnalyticsEngineTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.session_url = reverse('analytics:analytics-session')
+        self.pageview_url = reverse('analytics:analytics-pageview')
+        self.event_url = reverse('analytics:analytics-event')
+        self.beacon_url = reverse('analytics:analytics-beacon')
+        self.dash_data_url = reverse('analytics:analytics-dashboard-data')
+        self.admin_user = User.objects.create_superuser('admin_test', 'admin@example.com', 'pass1234')
+
+    def test_session_lifecycle_and_heartbeat(self):
+        # 1. Start Session
+        init_payload = {
+            "session_id": "sess-test-101",
+            "visitor_id": "vis-anon-999",
+            "landing_page": "/",
+            "current_page": "/",
+            "referrer": "https://www.google.com/search?q=hil+patel",
+            "device_category": "desktop",
+            "screen_resolution": "1920x1080",
+            "active_seconds_delta": 5,
+        }
+        res1 = self.client.post(self.session_url, init_payload, format='json')
+        self.assertEqual(res1.status_code, status.HTTP_200_OK)
+
+        session = AnalyticsSession.objects.get(session_id="sess-test-101")
+        self.assertEqual(session.visitor_id, "vis-anon-999")
+        self.assertEqual(session.referrer_source, "search")
+        self.assertEqual(session.total_active_seconds, 5)
+        self.assertTrue(session.is_bounce)
+
+        # 2. Heartbeat update adding 15 seconds of active dwell
+        heartbeat_payload = {
+            "session_id": "sess-test-101",
+            "visitor_id": "vis-anon-999",
+            "current_page": "/#projects",
+            "active_seconds_delta": 15,
+        }
+        res2 = self.client.post(self.session_url, heartbeat_payload, format='json')
+        self.assertEqual(res2.status_code, status.HTTP_200_OK)
+
+        session.refresh_from_db()
+        self.assertEqual(session.total_active_seconds, 20)
+        self.assertEqual(session.exit_page, "/#projects")
+        self.assertFalse(session.is_bounce)  # > 10s active duration is not a bounce
+
+    def test_pageview_navigation(self):
+        AnalyticsSession.objects.create(
+            session_id="sess-test-102",
+            visitor_id="vis-2",
+            started_at=timezone.now(),
+            last_activity_at=timezone.now(),
+            landing_page="/"
+        )
+        pv_payload = {
+            "session_id": "sess-test-102",
+            "page_path": "/#about",
+            "title": "About Hil Patel",
+            "active_seconds_delta": 8
+        }
+        res = self.client.post(self.pageview_url, pv_payload, format='json')
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
+        pv = AnalyticsPageView.objects.get(session__session_id="sess-test-102", page_path="/#about")
+        self.assertEqual(pv.active_seconds, 8)
+        self.assertTrue(pv.is_exit)
+
+    def test_event_tracking(self):
+        AnalyticsSession.objects.create(
+            session_id="sess-test-103",
+            visitor_id="vis-3",
+            started_at=timezone.now(),
+            last_activity_at=timezone.now()
+        )
+        event_payload = {
+            "session_id": "sess-test-103",
+            "event_id": "ev-uuid-1",
+            "page_path": "/#projects",
+            "event_type": "project_link_clicked",
+            "element_category": "link",
+            "element_label": "Digital Wellbeing Repo",
+            "destination_url": "https://github.com/hilpatelss/Digital-Wellbeing-Dashboard"
+        }
+        res = self.client.post(self.event_url, event_payload, format='json')
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
+        ev = AnalyticsEvent.objects.get(session__session_id="sess-test-103", event_type="project_link_clicked")
+        self.assertEqual(ev.element_label, "Digital Wellbeing Repo")
+
+    def test_beacon_flush(self):
+        session = AnalyticsSession.objects.create(
+            session_id="sess-test-104",
+            visitor_id="vis-4",
+            started_at=timezone.now(),
+            last_activity_at=timezone.now(),
+            total_active_seconds=10
+        )
+        beacon_payload = {
+            "session_id": "sess-test-104",
+            "active_seconds_delta": 12,
+            "current_page": "/#contact",
+            "is_closing": True
+        }
+        res = self.client.post(self.beacon_url, beacon_payload, format='json')
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        session.refresh_from_db()
+        self.assertEqual(session.total_active_seconds, 22)
+        self.assertEqual(session.exit_page, "/#contact")
+        self.assertIsNotNone(session.ended_at)
+
+    def test_admin_dashboard_permissions(self):
+        # 1. Unauthenticated request to staff API gets 401 or 403
+        res = self.client.get(self.dash_data_url)
+        self.assertIn(res.status_code, [status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN])
+
+        # 2. Staff user succeeds
+        self.client.force_authenticate(user=self.admin_user)
+        res_auth = self.client.get(self.dash_data_url + '?days=7d')
+        self.assertEqual(res_auth.status_code, status.HTTP_200_OK)
+        self.assertIn('summary', res_auth.data)
+        self.assertIn('daily_trend', res_auth.data)
+        self.assertIn('device_breakdown', res_auth.data)

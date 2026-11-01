@@ -1,3 +1,12 @@
+/**
+ * Dynamic Project Artwork Graphic Component
+ *
+ * Renders procedural, theme-adaptive data visualization cards for project previews:
+ * - Direct image thumbnail if provided by CMS.
+ * - 'kpi_bars': Interactive metric pills and bar chart visualizer.
+ * - 'donut_chart': Average metric radial donut with distribution sparkline.
+ * - 'billing_chart': Revenue trend bar chart with time series indicators.
+ */
 import React from 'react';
 
 export function DynamicArtGraphic({ project, index = 0 }) {

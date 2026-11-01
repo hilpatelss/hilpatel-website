@@ -1,3 +1,12 @@
+/**
+ * Site Footer Component
+ *
+ * Renders:
+ * - Brand mark and owner metadata.
+ * - Dynamic customizable tagline from Django CMS.
+ * - Back-to-top smooth-scrolling anchor.
+ * - Tech stack credentials, copyright, and location indicators.
+ */
 import React from 'react';
 import { ExternalLink } from 'lucide-react';
 

@@ -1,3 +1,13 @@
+/**
+ * Centralized Theme Management System for hilpatel.site
+ *
+ * Provides:
+ * - Dual persistence strategy: HTTP cookie ('hil_theme') with localStorage backup.
+ * - Automatic system theme detection (prefers-color-scheme) on first visit when no cookie is set.
+ * - Dynamic OS theme listener when no explicit cookie preference exists.
+ * - Synchronizes active theme to HTML document.documentElement[data-theme].
+ * - Pre-render theme detection to eliminate flash of unstyled content (FOUC).
+ */
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
 const ThemeContext = createContext();
@@ -5,6 +15,46 @@ const ThemeContext = createContext();
 const THEME_COOKIE_NAME = 'hil_theme';
 const THEME_STORAGE_KEY = 'hil-theme';
 
+/**
+ * Checks system-level color scheme preference.
+ * @returns {'dark'|'light'}
+ */
+export function getSystemTheme() {
+  if (typeof window !== 'undefined' && window.matchMedia) {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  return 'dark';
+}
+
+/**
+ * Determines whether user explicitly chose a theme previously.
+ * @returns {boolean}
+ */
+export function hasExplicitThemePreference() {
+  try {
+    if (typeof document !== 'undefined') {
+      const match = document.cookie.match(new RegExp(`(?:^|; )${THEME_COOKIE_NAME}=([^;]*)`));
+      if (match && ['dark', 'light'].includes(decodeURIComponent(match[1]).trim().toLowerCase())) {
+        return true;
+      }
+    }
+    if (typeof localStorage !== 'undefined') {
+      const local = localStorage.getItem(THEME_STORAGE_KEY)?.trim().toLowerCase();
+      if (local === 'dark' || local === 'light') {
+        return true;
+      }
+    }
+  } catch (e) {
+    // Ignore storage restriction
+  }
+  return false;
+}
+
+/**
+ * Retrieves persisted theme preference.
+ * Priority: 1. Cookie 'hil_theme' -> 2. localStorage 'hil-theme' -> 3. System prefers-color-scheme -> 4. 'dark'.
+ * @returns {'dark'|'light'}
+ */
 export function getPersistedTheme() {
   try {
     // 1. Read from cookie
@@ -27,9 +77,14 @@ export function getPersistedTheme() {
   } catch (e) {
     // Browser storage/cookie restriction fallback
   }
-  return 'dark'; // Safe default
+  // 3. System preference fallback on first visit
+  return getSystemTheme();
 }
 
+/**
+ * Persists theme preference across cookie, localStorage, and DOM attribute.
+ * @param {'dark'|'light'} theme
+ */
 export function persistTheme(theme) {
   const validTheme = theme === 'light' ? 'light' : 'dark';
   try {
@@ -46,35 +101,68 @@ export function persistTheme(theme) {
     // Silent fail if cookies or localStorage are disabled
   }
 
-  // 3. Update DOM attribute
+  // 3. Update DOM attribute for immediate CSS selector matching
   if (typeof document !== 'undefined') {
     document.documentElement.dataset.theme = validTheme;
   }
 }
 
+/**
+ * Context Provider wrapping the component tree to supply active theme and toggles.
+ */
 export function ThemeProvider({ children }) {
   const [theme, setThemeState] = useState(() => getPersistedTheme());
+  const [hasExplicit, setHasExplicit] = useState(() => hasExplicitThemePreference());
 
+  // Listen to OS scheme changes if user hasn't explicitly set a preference
   useEffect(() => {
-    persistTheme(theme);
+    if (hasExplicit || typeof window === 'undefined' || !window.matchMedia) return;
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleSystemChange = (e) => {
+      const newSysTheme = e.matches ? 'dark' : 'light';
+      setThemeState(newSysTheme);
+      document.documentElement.dataset.theme = newSysTheme;
+    };
+
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', handleSystemChange);
+      return () => mediaQuery.removeEventListener('change', handleSystemChange);
+    }
+  }, [hasExplicit]);
+
+  // Synchronize DOM whenever theme changes
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.documentElement.dataset.theme = theme;
+    }
   }, [theme]);
 
   const toggleTheme = useCallback(() => {
-    setThemeState((prev) => (prev === 'dark' ? 'light' : 'dark'));
+    setThemeState((prev) => {
+      const next = prev === 'dark' ? 'light' : 'dark';
+      setHasExplicit(true);
+      persistTheme(next);
+      return next;
+    });
   }, []);
 
   const setTheme = useCallback((newTheme) => {
     const valid = newTheme === 'light' ? 'light' : 'dark';
     setThemeState(valid);
+    setHasExplicit(true);
+    persistTheme(valid);
   }, []);
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme, setTheme }}>
+    <ThemeContext.Provider value={{ theme, toggleTheme, setTheme, hasExplicit }}>
       {children}
     </ThemeContext.Provider>
   );
 }
 
+/**
+ * Custom hook to consume active theme context.
+ */
 export function useTheme() {
   const context = useContext(ThemeContext);
   if (!context) {
@@ -82,4 +170,3 @@ export function useTheme() {
   }
   return context;
 }
-

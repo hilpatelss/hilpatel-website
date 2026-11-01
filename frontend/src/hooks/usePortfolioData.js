@@ -1,3 +1,13 @@
+/**
+ * Portfolio Data Hook for hilpatel.site
+ *
+ * Responsibilities:
+ * - Bootstraps all dynamic CMS data in parallel using Promise.allSettled.
+ * - Provides comprehensive, presentation-grade local fallbacks for Hil Patel's portfolio.
+ * - Maps dynamic theme tokens (accent, background, surface, fonts) to CSS variables.
+ * - Tracks API lifecycle states ('pending' -> 'success' / 'error') for the LoadingScreen.
+ * - Manages concurrent request IDs to discard stale responses on retries.
+ */
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { api } from '../services/api';
 
@@ -35,23 +45,23 @@ const DEFAULT_FALLBACKS = {
     contact_pitch: "I'm interested in entry-level Data Analyst opportunities and conversations about analytics, dashboards, and data-driven problem solving.",
   },
   design: {
-    accent_color: "#10b981",
-    accent2_color: "#06b6d4",
-    dark_bg: "#0a0d14",
-    dark_surface: "#111726",
-    dark_surface2: "#172033",
-    dark_text: "#f8fafc",
-    dark_muted: "#94a3b8",
-    dark_line: "#1e293b",
-    light_bg: "#f8fafc",
-    light_surface: "#ffffff",
-    light_surface2: "#f1f5f9",
-    light_text: "#0f172a",
-    light_muted: "#64748b",
-    light_line: "#e2e8f0",
-    light_accent: "#059669",
-    font_family_main: "'Manrope', sans-serif",
-    font_family_mono: "'DM Mono', monospace",
+    accent_color: "#2997FF",
+    accent2_color: "#0071E3",
+    dark_bg: "#000000",
+    dark_surface: "#1C1C1E",
+    dark_surface2: "#2C2C2E",
+    dark_text: "#F5F5F7",
+    dark_muted: "#A1A1A6",
+    dark_line: "#38383A",
+    light_bg: "#FFFFFF",
+    light_surface: "#FFFFFF",
+    light_surface2: "#F5F5F7",
+    light_text: "#1D1D1F",
+    light_muted: "#6E6E73",
+    light_line: "#D2D2D7",
+    light_accent: "#0071E3",
+    font_family_main: "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Inter', 'Manrope', sans-serif",
+    font_family_mono: "'SF Mono', 'DM Mono', Menlo, Consolas, monospace",
   },
   navigation: [
     { label: "About", url: "#about" },

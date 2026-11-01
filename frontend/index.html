@@ -22,7 +22,9 @@
           if (t !== 'light' && t !== 'dark') {
             t = (localStorage.getItem('hil-theme') || '').trim().toLowerCase();
           }
-          if (t !== 'light' && t !== 'dark') t = 'dark';
+          if (t !== 'light' && t !== 'dark') {
+            t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+          }
           document.documentElement.setAttribute('data-theme', t);
         } catch (e) {
           document.documentElement.setAttribute('data-theme', 'dark');

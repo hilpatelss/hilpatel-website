@@ -1,6 +1,10 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { getPersistedTheme } from '../context/ThemeContext';
 
+/**
+ * List of rotating inspirational & technical status messages displayed
+ * with a typewriter effect during initial portfolio loading.
+ */
 const LOADING_MESSAGES = [
   "Analyzing the data behind the scenes...",
   "Connecting the dots. Almost there...",
@@ -54,6 +58,16 @@ const LOADING_MESSAGES = [
   "Almost ready to explore...",
 ];
 
+/**
+ * LoadingSpinner Component
+ * 
+ * Renders a lightweight, hardware-accelerated dual-arc circular loading spinner.
+ * Features:
+ * - Scoped keyframe animation (@keyframes loader-spin) running at 0.85s linear.
+ * - Single-color theme synchronization using emerald accent (--accent).
+ * - Translucent background ring track for visual depth.
+ * - "!important" flag guarantees animation runs reliably across all browser accessibility modes.
+ */
 export function LoadingSpinner({ label = "Loading" }) {
   return (
     <>
@@ -92,6 +106,21 @@ export function LoadingSpinner({ label = "Loading" }) {
   );
 }
 
+/**
+ * LoadingScreen Component
+ * 
+ * Orchestrates the portfolio's initial entry loading state with:
+ * - Single-color animated spinner.
+ * - Progressive typewriter message display.
+ * - Multi-condition timing coordinator to guarantee smooth visual rhythm.
+ * - Non-blocking polite guidance card if the server backend is cold-starting.
+ * 
+ * @param {string} apiStatus - Current API request state ('pending', 'success', 'error')
+ * @param {Error|null} error - Any API error encountered
+ * @param {Function} onRetry - Handler to trigger backend re-fetch
+ * @param {Function} onReadyToDismiss - Callback when loading conditions are satisfied
+ * @param {string} theme - Active theme override ('dark' or 'light')
+ */
 export function LoadingScreen({
   apiStatus = 'pending',
   error = null,
@@ -99,47 +128,58 @@ export function LoadingScreen({
   onReadyToDismiss,
   theme,
 }) {
+  // Session key increments on retry to reset all timers and typewriter state cleanly
   const [sessionKey, setSessionKey] = useState(0);
-  const [displayedText, setDisplayedText] = useState('');
-  const [isTypingComplete, setIsTypingComplete] = useState(false);
-  const [isDismissing, setIsDismissing] = useState(false);
-  const [hasWaited10s, setHasWaited10s] = useState(false);
 
-  // Read theme directly from prop or persisted cookie/storage
+  // Progressive typewriter text buffer
+  const [displayedText, setDisplayedText] = useState('');
+
+  // Flag indicating the random message has completely typed out
+  const [isTypingComplete, setIsTypingComplete] = useState(false);
+
+  // Trigger for the CSS opacity fade-out transition before unmounting
+  const [isDismissing, setIsDismissing] = useState(false);
+
+  // Flag indicating extended wait threshold has elapsed without API success
+  const [hasWaitedExtended, setHasWaitedExtended] = useState(false);
+
+  // Resolve active theme: prioritizes direct prop, then cookie ('hil_theme'), then localStorage
   const activeTheme = theme || getPersistedTheme();
 
+  // Reference timestamps for elapsed time calculations
   const startTimeRef = useRef(Date.now());
   const typingCompleteTimeRef = useRef(null);
   const onReadyToDismissRef = useRef(onReadyToDismiss);
 
+  // Keep dismiss callback ref current across re-renders
   useEffect(() => {
     onReadyToDismissRef.current = onReadyToDismiss;
   }, [onReadyToDismiss]);
 
-  // Pick exactly one random message per session (stable across re-renders)
+  // Select exactly one random loading message per session cycle
   const selectedMessage = useMemo(() => {
     const randomIndex = Math.floor(Math.random() * LOADING_MESSAGES.length);
     return LOADING_MESSAGES[randomIndex];
   }, [sessionKey]);
 
-  // Reset timers, 10s wait flag, and typewriter on load or retry
+  // Session lifecycle: initialize timers and extended wait threshold
   useEffect(() => {
     startTimeRef.current = Date.now();
     typingCompleteTimeRef.current = null;
     setDisplayedText('');
     setIsTypingComplete(false);
     setIsDismissing(false);
-    setHasWaited10s(false);
+    setHasWaitedExtended(false);
 
-    // Wait exactly 30s before showing polite status guidance if server takes longer
+    // After 30 seconds of pending status, offer polite retry / refresh options
     const waitTimer = setTimeout(() => {
-      setHasWaited10s(true);
+      setHasWaitedExtended(true);
     }, 30000);
 
     return () => clearTimeout(waitTimer);
   }, [sessionKey]);
 
-  // Typewriter effect: ~35ms per character
+  // Typewriter effect: appends 1 character every 35ms until string completion
   useEffect(() => {
     let charIndex = 0;
     const typingInterval = setInterval(() => {
@@ -156,11 +196,13 @@ export function LoadingScreen({
     return () => clearInterval(typingInterval);
   }, [selectedMessage]);
 
-  // Timing Coordinator for successful completion:
-  // Requires:
-  // 1. apiStatus === 'success'
-  // 2. Total duration >= 4500ms
-  // 3. Message typing complete AND >= 2000ms reading time
+  /**
+   * Smooth Timing Coordinator:
+   * Prevents jarring flashes by evaluating three required completion conditions:
+   * 1. API request is successful (apiStatus === 'success').
+   * 2. Total minimum display duration is satisfied (>= 4500ms).
+   * 3. Message typing is complete AND visitor has had at least 2000ms reading time.
+   */
   useEffect(() => {
     if (apiStatus !== 'success') return;
 
@@ -176,17 +218,19 @@ export function LoadingScreen({
       if (condition1 && condition2 && condition3 && !isDismissing) {
         setIsDismissing(true);
         clearInterval(evaluationInterval);
+        // Wait 550ms to allow smooth CSS fade-out opacity transition before dismissal
         setTimeout(() => {
           if (onReadyToDismissRef.current) {
             onReadyToDismissRef.current();
           }
-        }, 550); // Match fade-out transition duration
+        }, 550);
       }
     }, 50);
 
     return () => clearInterval(evaluationInterval);
   }, [apiStatus, isTypingComplete, isDismissing]);
 
+  // User Action Handlers
   const handleRetry = () => {
     setSessionKey((prev) => prev + 1);
     if (onRetry) {
@@ -207,8 +251,8 @@ export function LoadingScreen({
     }, 550);
   };
 
-  // Only display the status guidance after 10s of waiting if API has not succeeded
-  const showFailedState = hasWaited10s && apiStatus !== 'success';
+  // Only display fallback actions if extended wait has elapsed and API hasn't succeeded
+  const showFailedState = hasWaitedExtended && apiStatus !== 'success';
 
   return (
     <aside

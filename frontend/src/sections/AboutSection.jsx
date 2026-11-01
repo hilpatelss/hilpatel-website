@@ -1,3 +1,11 @@
+/**
+ * About Section Component
+ *
+ * Presents:
+ * - Professional background narrative and philosophy.
+ * - Social connection links (LinkedIn, GitHub, Email).
+ * - High-level summary statistic cards (projects, certifications, tool categories).
+ */
 import React from 'react';
 import {
   Linkedin,

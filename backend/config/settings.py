@@ -205,6 +205,7 @@ REST_FRAMEWORK = {
         'user': '1000/minute',
         'contact': os.getenv('CONTACT_RATE_LIMIT', '15/hour'),
         'visitor_log': os.getenv('VISITOR_LOG_RATE_LIMIT', '60/minute'),
+        'analytics_ingest': os.getenv('ANALYTICS_RATE_LIMIT', '120/minute'),
     },
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 50,

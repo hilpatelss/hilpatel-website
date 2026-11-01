@@ -1,7 +1,19 @@
+/**
+ * Main Application Root Component for hilpatel.site
+ *
+ * Coordinates:
+ * - ThemeProvider context and persisted dark/light preference synchronization.
+ * - Centralized portfolio data fetching via usePortfolioData hook.
+ * - Non-blocking asynchronous visitor telemetry via logVisitorVisit.
+ * - LoadingScreen presentation and graceful dismiss coordinator.
+ * - Section visibility management based on backend configuration.
+ * - IntersectionObserver scroll reveal animations.
+ */
 import React, { useEffect, useState, useMemo } from 'react';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { usePortfolioData } from './hooks/usePortfolioData';
 import { logVisitorVisit } from './services/visitorLog';
+import { initAnalytics } from './services/analytics';
 import { LoadingScreen } from './components/LoadingScreen';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
@@ -27,6 +39,11 @@ function PortfolioApp() {
       applyDesignTokens(data.design, theme);
     }
   }, [theme, data?.design, applyDesignTokens]);
+
+  // Initialize robust visitor analytics system (active duration, event delegation, heartbeats)
+  useEffect(() => {
+    initAnalytics();
+  }, []);
 
   // Record lightweight visitor log asynchronously once ready and on genuine route changes
   useEffect(() => {

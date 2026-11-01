@@ -1,3 +1,12 @@
+/**
+ * Contact Section Component
+ *
+ * Provides:
+ * - Professional contact invitation pitch and availability status.
+ * - Direct email link with copy/click support.
+ * - Social connection badges (LinkedIn, GitHub).
+ * - Interactive inquiry form with honeypot spam protection, validation, and submission states.
+ */
 import React, { useState } from 'react';
 import {
   Linkedin,

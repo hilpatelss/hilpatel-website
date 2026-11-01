@@ -1,3 +1,13 @@
+/**
+ * Projects Section Component
+ *
+ * Displays portfolio case studies and featured analytics projects:
+ * - Project index number, title, and category tag.
+ * - Technology stack pill badges (Power BI, Python, DAX, PostgreSQL).
+ * - Descriptive summary and key achievement bullet points.
+ * - Procedural/custom thumbnail art graphics via DynamicArtGraphic.
+ * - Repository & documentation links.
+ */
 import React from 'react';
 import {
   Check,

@@ -1,3 +1,12 @@
+/**
+ * REST API Client Service for hilpatel.site
+ *
+ * Communicates with the Django REST Framework backend:
+ * - Bootstraps all portfolio content in a single unified payload via /bootstrap/.
+ * - Handles individual resource endpoints (projects, certifications, skills, etc.).
+ * - Contact form submissions with legacy fallback routing.
+ * - Standardized JSON error extraction and HTTP status propagation.
+ */
 const rawBaseUrl = import.meta.env.VITE_API_URL || 'https://api.hilpatel.site/api/v1';
 const BASE_URL = rawBaseUrl.replace(/\/+$/, '');
 

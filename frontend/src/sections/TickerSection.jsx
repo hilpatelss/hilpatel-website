@@ -1,3 +1,9 @@
+/**
+ * Marquee Ticker Section Component
+ *
+ * Renders an infinite, seamless scrolling banner of core technical competencies
+ * (Python, SQL, Power BI, Excel, Pandas, DAX, PostgreSQL).
+ */
 import React from 'react';
 
 export function TickerSection({ items }) {

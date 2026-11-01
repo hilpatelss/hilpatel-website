@@ -1,3 +1,10 @@
+/**
+ * Key Achievements & Highlights Section Component
+ *
+ * Displays:
+ * - Milestone cards with numbered indices and dynamic icons.
+ * - Concise summary of tangible technical outcomes.
+ */
 import React from 'react';
 import { BarChart3, Search, Database, Award } from 'lucide-react';
 

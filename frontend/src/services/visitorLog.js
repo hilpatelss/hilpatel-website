@@ -1,6 +1,14 @@
-// Lightweight, asynchronous visitor logging service
-// Completely isolated and fire-and-forget: failure NEVER impacts the website
-
+/**
+ * Anonymous Visitor Analytics Service
+ *
+ * Captures non-intrusive, privacy-focused visit metrics:
+ * - Route path & active theme preference.
+ * - Device category (desktop/tablet/mobile) & screen resolution.
+ * - Rough timezone location via Intl API.
+ * - Optional pre-granted GPS coordinates (without triggering permission popups).
+ * - Client-side in-memory deduplication (15s window to filter React strict-mode double-invocations).
+ * - Non-blocking fire-and-forget: network/backend errors are silently absorbed.
+ */
 const rawBaseUrl = import.meta.env.VITE_API_URL || 'https://api.hilpatel.site/api/v1';
 const BASE_URL = rawBaseUrl.replace(/\/+$/, '');
 const LOG_ENDPOINT = `${BASE_URL}/analytics/log/`;
