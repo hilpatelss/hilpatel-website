@@ -46,21 +46,30 @@ const DEFAULT_FALLBACKS = {
   },
   design: {
     accent_color: "#2997FF",
-    accent2_color: "#0071E3",
+    accent2_color: "#40A9FF",
     dark_bg: "#000000",
-    dark_surface: "#1C1C1E",
-    dark_surface2: "#2C2C2E",
+    dark_secondary: "#161617",
+    dark_tertiary: "#1C1C1E",
+    dark_surface: "#161617",
+    dark_surface2: "#161617",
     dark_text: "#F5F5F7",
     dark_muted: "#A1A1A6",
     dark_line: "#38383A",
+    dark_card: "#161617",
+    dark_input: "#1C1C1E",
     light_bg: "#FFFFFF",
+    light_secondary: "#F5F5F7",
+    light_tertiary: "#FBFBFD",
     light_surface: "#FFFFFF",
     light_surface2: "#F5F5F7",
     light_text: "#1D1D1F",
     light_muted: "#6E6E73",
     light_line: "#D2D2D7",
     light_accent: "#0071E3",
-    font_family_main: "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Inter', 'Manrope', sans-serif",
+    light_accent_hover: "#0077ED",
+    light_card: "#FFFFFF",
+    light_input: "#F5F5F7",
+    font_family_main: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif",
     font_family_mono: "'SF Mono', 'DM Mono', Menlo, Consolas, monospace",
   },
   navigation: [
@@ -203,24 +212,68 @@ export function usePortfolioData() {
     if (!design) return;
     const root = document.documentElement;
 
-    if (design.accent_color) root.style.setProperty('--accent', design.accent_color);
-    if (design.accent2_color) root.style.setProperty('--accent2', design.accent2_color);
-
     if (themeMode === 'light') {
-      if (design.light_bg) root.style.setProperty('--bg', design.light_bg);
-      if (design.light_surface) root.style.setProperty('--surface', design.light_surface);
-      if (design.light_surface2) root.style.setProperty('--surface2', design.light_surface2);
-      if (design.light_text) root.style.setProperty('--text', design.light_text);
-      if (design.light_muted) root.style.setProperty('--muted', design.light_muted);
-      if (design.light_line) root.style.setProperty('--line', design.light_line);
-      if (design.light_accent) root.style.setProperty('--accent', design.light_accent);
+      const bg = design.light_bg || '#FFFFFF';
+      const sec = design.light_secondary || '#F5F5F7';
+      const tert = design.light_tertiary || '#FBFBFD';
+      const text = design.light_text || '#1D1D1F';
+      const muted = design.light_muted || '#6E6E73';
+      const line = design.light_line || '#D2D2D7';
+      const accent = design.light_accent || '#0071E3';
+      const accentHover = design.light_accent_hover || '#0077ED';
+      const card = design.light_card || design.light_surface || '#FFFFFF';
+      const input = design.light_input || '#F5F5F7';
+
+      root.style.setProperty('--bg-primary', bg);
+      root.style.setProperty('--bg-secondary', sec);
+      root.style.setProperty('--bg-tertiary', tert);
+      root.style.setProperty('--text-primary', text);
+      root.style.setProperty('--text-secondary', muted);
+      root.style.setProperty('--border', line);
+      root.style.setProperty('--card-bg', card);
+      root.style.setProperty('--input-bg', input);
+      root.style.setProperty('--accent', accent);
+      root.style.setProperty('--accent-hover', accentHover);
+
+      // Aliases for legacy component selectors
+      root.style.setProperty('--bg', bg);
+      root.style.setProperty('--surface', card);
+      root.style.setProperty('--surface2', sec);
+      root.style.setProperty('--text', text);
+      root.style.setProperty('--muted', muted);
+      root.style.setProperty('--line', line);
+      root.style.setProperty('--accent2', accentHover);
     } else {
-      if (design.dark_bg) root.style.setProperty('--bg', design.dark_bg);
-      if (design.dark_surface) root.style.setProperty('--surface', design.dark_surface);
-      if (design.dark_surface2) root.style.setProperty('--surface2', design.dark_surface2);
-      if (design.dark_text) root.style.setProperty('--text', design.dark_text);
-      if (design.dark_muted) root.style.setProperty('--muted', design.dark_muted);
-      if (design.dark_line) root.style.setProperty('--line', design.dark_line);
+      const bg = design.dark_bg || '#000000';
+      const sec = design.dark_secondary || '#161617';
+      const tert = design.dark_tertiary || '#1C1C1E';
+      const text = design.dark_text || '#F5F5F7';
+      const muted = design.dark_muted || '#A1A1A6';
+      const line = design.dark_line || '#38383A';
+      const accent = design.accent_color || '#2997FF';
+      const accentHover = design.accent2_color || '#40A9FF';
+      const card = design.dark_card || design.dark_surface || '#161617';
+      const input = design.dark_input || '#1C1C1E';
+
+      root.style.setProperty('--bg-primary', bg);
+      root.style.setProperty('--bg-secondary', sec);
+      root.style.setProperty('--bg-tertiary', tert);
+      root.style.setProperty('--text-primary', text);
+      root.style.setProperty('--text-secondary', muted);
+      root.style.setProperty('--border', line);
+      root.style.setProperty('--card-bg', card);
+      root.style.setProperty('--input-bg', input);
+      root.style.setProperty('--accent', accent);
+      root.style.setProperty('--accent-hover', accentHover);
+
+      // Aliases for legacy component selectors
+      root.style.setProperty('--bg', bg);
+      root.style.setProperty('--surface', card);
+      root.style.setProperty('--surface2', sec);
+      root.style.setProperty('--text', text);
+      root.style.setProperty('--muted', muted);
+      root.style.setProperty('--line', line);
+      root.style.setProperty('--accent2', accentHover);
     }
 
     if (design.font_family_main) root.style.setProperty('font-family', design.font_family_main);

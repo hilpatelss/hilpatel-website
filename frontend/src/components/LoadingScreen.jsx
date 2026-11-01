@@ -81,24 +81,24 @@ export function LoadingSpinner({ label = "Loading" }) {
           width: 44px;
           height: 44px;
           border-radius: 50%;
-          border: 3.5px solid rgba(16, 185, 129, 0.2);
-          border-top-color: var(--accent, #10b981);
-          border-right-color: var(--accent, #10b981);
+          border: 3.5px solid rgba(0, 113, 227, 0.2);
+          border-top-color: var(--accent, #0071E3);
+          border-right-color: var(--accent, #0071E3);
           animation: loader-spin 0.85s linear infinite !important;
           margin: 0 auto clamp(1.8rem, 3.8vh, 2.8rem);
           box-sizing: border-box;
         }
         [data-theme="light"] .loader-spinner {
-          border-color: rgba(5, 150, 105, 0.2);
-          border-top-color: var(--accent, #059669);
-          border-right-color: var(--accent, #059669);
-          box-shadow: 0 0 12px rgba(5, 150, 105, 0.3);
+          border-color: rgba(0, 113, 227, 0.2);
+          border-top-color: var(--accent, #0071E3);
+          border-right-color: var(--accent, #0071E3);
+          box-shadow: 0 0 14px rgba(0, 113, 227, 0.28);
         }
         [data-theme="dark"] .loader-spinner {
-          border-color: rgba(16, 185, 129, 0.2);
-          border-top-color: var(--accent, #10b981);
-          border-right-color: var(--accent, #10b981);
-          box-shadow: 0 0 16px rgba(16, 185, 129, 0.45);
+          border-color: rgba(41, 151, 255, 0.22);
+          border-top-color: var(--accent, #2997FF);
+          border-right-color: var(--accent, #2997FF);
+          box-shadow: 0 0 18px rgba(41, 151, 255, 0.45);
         }
       `}</style>
       <div className="loader-spinner" role="status" aria-label={label} />
@@ -143,7 +143,7 @@ export function LoadingScreen({
   // Flag indicating extended wait threshold has elapsed without API success
   const [hasWaitedExtended, setHasWaitedExtended] = useState(false);
 
-  // Resolve active theme: prioritizes direct prop, then cookie ('hil_theme'), then localStorage
+  // Resolve active theme: prioritizes direct prop, then cookie ('site-theme'), then localStorage
   const activeTheme = theme || getPersistedTheme();
 
   // Reference timestamps for elapsed time calculations

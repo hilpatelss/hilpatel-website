@@ -1,29 +1,53 @@
 /**
  * Centralized Theme Management System for hilpatel.site
  *
- * Provides:
- * - Dual persistence strategy: HTTP cookie ('hil_theme') with localStorage backup.
- * - Automatic system theme detection (prefers-color-scheme) on first visit when no cookie is set.
- * - Dynamic OS theme listener when no explicit cookie preference exists.
+ * Implements Apple-inspired light and dark mode functionality:
+ * - Cookie name: 'site-theme' (allowed values: 'light' | 'dark').
+ * - 1-year expiration (max-age=31536000), Path=/, SameSite=Lax, Secure when HTTPS.
+ * - Automatic OS theme detection (prefers-color-scheme) on first visit when no cookie is set.
+ * - If device detection is unavailable, defaults to 'light'.
+ * - Saved preference in cookie takes priority and is preserved across navigation and visits.
+ * - Backward compatibility with legacy 'hil_theme' and localStorage backup.
+ * - Dynamic OS theme listener when no explicit preference exists.
  * - Synchronizes active theme to HTML document.documentElement[data-theme].
- * - Pre-render theme detection to eliminate flash of unstyled content (FOUC).
  */
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
 const ThemeContext = createContext();
 
-const THEME_COOKIE_NAME = 'hil_theme';
-const THEME_STORAGE_KEY = 'hil-theme';
+export const THEME_COOKIE_NAME = 'site-theme';
+const LEGACY_COOKIE_NAME = 'hil_theme';
+const THEME_STORAGE_KEY = 'site-theme';
+const LEGACY_STORAGE_KEY = 'hil-theme';
 
 /**
  * Checks system-level color scheme preference.
+ * Defaults to 'light' if device detection is unavailable.
  * @returns {'dark'|'light'}
  */
 export function getSystemTheme() {
   if (typeof window !== 'undefined' && window.matchMedia) {
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) return 'dark';
+    if (window.matchMedia('(prefers-color-scheme: light)').matches) return 'light';
   }
-  return 'dark';
+  return 'light';
+}
+
+/**
+ * Helper to extract cookie value by name.
+ * @param {string} name 
+ * @returns {string|null}
+ */
+function readCookieValue(name) {
+  if (typeof document === 'undefined') return null;
+  const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
+  if (match) {
+    const val = decodeURIComponent(match[1]).trim().toLowerCase();
+    if (val === 'light' || val === 'dark') {
+      return val;
+    }
+  }
+  return null;
 }
 
 /**
@@ -32,44 +56,37 @@ export function getSystemTheme() {
  */
 export function hasExplicitThemePreference() {
   try {
-    if (typeof document !== 'undefined') {
-      const match = document.cookie.match(new RegExp(`(?:^|; )${THEME_COOKIE_NAME}=([^;]*)`));
-      if (match && ['dark', 'light'].includes(decodeURIComponent(match[1]).trim().toLowerCase())) {
-        return true;
-      }
+    if (readCookieValue(THEME_COOKIE_NAME) || readCookieValue(LEGACY_COOKIE_NAME)) {
+      return true;
     }
     if (typeof localStorage !== 'undefined') {
-      const local = localStorage.getItem(THEME_STORAGE_KEY)?.trim().toLowerCase();
+      const local = (localStorage.getItem(THEME_STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY))?.trim().toLowerCase();
       if (local === 'dark' || local === 'light') {
         return true;
       }
     }
   } catch (e) {
-    // Ignore storage restriction
+    // Ignore storage restrictions
   }
   return false;
 }
 
 /**
  * Retrieves persisted theme preference.
- * Priority: 1. Cookie 'hil_theme' -> 2. localStorage 'hil-theme' -> 3. System prefers-color-scheme -> 4. 'dark'.
+ * Priority: 1. Cookie 'site-theme' (or 'hil_theme') -> 2. localStorage -> 3. System prefers-color-scheme -> 4. 'light'.
  * @returns {'dark'|'light'}
  */
 export function getPersistedTheme() {
   try {
     // 1. Read from cookie
-    if (typeof document !== 'undefined') {
-      const match = document.cookie.match(new RegExp(`(?:^|; )${THEME_COOKIE_NAME}=([^;]*)`));
-      if (match) {
-        const val = decodeURIComponent(match[1]).trim().toLowerCase();
-        if (val === 'light' || val === 'dark') {
-          return val;
-        }
-      }
+    const cookieVal = readCookieValue(THEME_COOKIE_NAME) || readCookieValue(LEGACY_COOKIE_NAME);
+    if (cookieVal) {
+      return cookieVal;
     }
+
     // 2. Fallback to localStorage
     if (typeof localStorage !== 'undefined') {
-      const local = localStorage.getItem(THEME_STORAGE_KEY)?.trim().toLowerCase();
+      const local = (localStorage.getItem(THEME_STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY))?.trim().toLowerCase();
       if (local === 'light' || local === 'dark') {
         return local;
       }
@@ -77,7 +94,8 @@ export function getPersistedTheme() {
   } catch (e) {
     // Browser storage/cookie restriction fallback
   }
-  // 3. System preference fallback on first visit
+
+  // 3. System preference fallback on first visit; default to 'light' if unavailable
   return getSystemTheme();
 }
 
@@ -88,14 +106,17 @@ export function getPersistedTheme() {
 export function persistTheme(theme) {
   const validTheme = theme === 'light' ? 'light' : 'dark';
   try {
-    // 1. Save cookie (1 year expiration, SameSite=Lax, Secure if HTTPS)
+    // 1. Save cookie (1 year expiration, SameSite=Lax, Secure if HTTPS, Path=/)
     const isHttps = typeof window !== 'undefined' && window.location.protocol === 'https:';
     const secureFlag = isHttps ? '; Secure' : '';
     document.cookie = `${THEME_COOKIE_NAME}=${validTheme}; path=/; max-age=31536000; SameSite=Lax${secureFlag}`;
+    // Also update legacy cookie for backwards compatibility
+    document.cookie = `${LEGACY_COOKIE_NAME}=${validTheme}; path=/; max-age=31536000; SameSite=Lax${secureFlag}`;
 
     // 2. Sync to localStorage
     if (typeof localStorage !== 'undefined') {
       localStorage.setItem(THEME_STORAGE_KEY, validTheme);
+      localStorage.setItem(LEGACY_STORAGE_KEY, validTheme);
     }
   } catch (e) {
     // Silent fail if cookies or localStorage are disabled

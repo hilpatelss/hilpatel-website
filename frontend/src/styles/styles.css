@@ -1,28 +1,91 @@
 :root {
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Inter", "Manrope", sans-serif;
-  color-scheme: dark;
-  --bg: #000000;
-  --surface: #1C1C1E;
-  --surface2: #2C2C2E;
-  --text: #F5F5F7;
-  --muted: #A1A1A6;
-  --line: #38383A;
-  --accent: #2997FF;
-  --accent2: #0071E3;
-  --shadow: 0 16px 48px rgba(0, 0, 0, 0.45);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+  color-scheme: light;
+
+  /* Apple Light Mode Palette */
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #F5F5F7;
+  --bg-tertiary: #FBFBFD;
+
+  --text-primary: #1D1D1F;
+  --text-secondary: #6E6E73;
+
+  --accent: #0071E3;
+  --accent-hover: #0077ED;
+
+  --border: #D2D2D7;
+  --card-bg: #FFFFFF;
+  --input-bg: #F5F5F7;
+
+  /* Aliases for backwards compatibility with existing component styles */
+  --bg: var(--bg-primary);
+  --surface: var(--card-bg);
+  --surface2: var(--bg-secondary);
+  --surface3: var(--bg-tertiary);
+  --text: var(--text-primary);
+  --muted: var(--text-secondary);
+  --line: var(--border);
+  --accent2: var(--accent-hover);
+  --shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
   --mono: "SF Mono", "DM Mono", Menlo, Monaco, Consolas, monospace;
-  --radius: 8px;
+  --radius: 10px;
 }
-:root[data-theme="dark"] {
+
+:root[data-theme="light"],
+[data-theme="light"] {
+  color-scheme: light;
+
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #F5F5F7;
+  --bg-tertiary: #FBFBFD;
+
+  --text-primary: #1D1D1F;
+  --text-secondary: #6E6E73;
+
+  --accent: #0071E3;
+  --accent-hover: #0077ED;
+
+  --border: #D2D2D7;
+  --card-bg: #FFFFFF;
+  --input-bg: #F5F5F7;
+
+  --bg: var(--bg-primary);
+  --surface: var(--card-bg);
+  --surface2: var(--bg-secondary);
+  --surface3: var(--bg-tertiary);
+  --text: var(--text-primary);
+  --muted: var(--text-secondary);
+  --line: var(--border);
+  --accent2: var(--accent-hover);
+  --shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+
+:root[data-theme="dark"],
+[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #000000;
-  --surface: #1C1C1E;
-  --surface2: #2C2C2E;
-  --text: #F5F5F7;
-  --muted: #A1A1A6;
-  --line: #38383A;
+
+  --bg-primary: #000000;
+  --bg-secondary: #161617;
+  --bg-tertiary: #1C1C1E;
+
+  --text-primary: #F5F5F7;
+  --text-secondary: #A1A1A6;
+
   --accent: #2997FF;
-  --accent2: #0071E3;
+  --accent-hover: #40A9FF;
+
+  --border: #38383A;
+  --card-bg: #161617;
+  --input-bg: #1C1C1E;
+
+  --bg: var(--bg-primary);
+  --surface: var(--card-bg);
+  --surface2: var(--bg-secondary);
+  --surface3: var(--bg-tertiary);
+  --text: var(--text-primary);
+  --muted: var(--text-secondary);
+  --line: var(--border);
+  --accent2: var(--accent-hover);
   --shadow: 0 16px 48px rgba(0, 0, 0, 0.45);
 }
 * {
@@ -42,14 +105,15 @@ body {
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
   transition:
-    background 0.25s,
-    color 0.25s;
+    background-color 0.25s ease,
+    color 0.25s ease,
+    border-color 0.25s ease;
 }
 body,
 button,
 input,
 textarea {
-  font-family: "Manrope", sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
 }
 a {
   color: inherit;
@@ -87,6 +151,7 @@ button {
   display: grid;
   place-items: center;
   border: 1px solid var(--line);
+  border-radius: 8px;
   font-weight: 800;
   font-size: 20px;
   letter-spacing: -2px;
@@ -141,34 +206,37 @@ button {
   width: 38px;
   height: 38px;
   border: 1px solid var(--line);
-  background: transparent;
+  background: var(--surface);
   display: grid;
   place-items: center;
   cursor: pointer;
-  border-radius: var(--radius);
-  transition: border-color 0.2s, background 0.2s;
+  border-radius: 50%;
+  color: var(--text);
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
 }
 .theme-toggle:hover,
 .menu-toggle:hover {
   border-color: var(--accent);
   background: var(--surface2);
+  transform: scale(1.04);
 }
 .resume-small {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 16px;
+  padding: 9px 18px;
   background: var(--accent);
   color: #ffffff;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
-  letter-spacing: 0.4px;
-  border-radius: var(--radius);
-  transition: transform 0.2s, opacity 0.2s;
+  letter-spacing: 0.2px;
+  border-radius: 980px;
+  transition: transform 0.2s, opacity 0.2s, background-color 0.2s;
 }
 .resume-small:hover {
   transform: translateY(-1px);
-  opacity: 0.92;
+  background: var(--accent2);
+  opacity: 0.95;
 }
 .menu-toggle {
   display: none;
@@ -224,7 +292,12 @@ button {
   border-radius: 50%;
   background: var(--accent);
   display: inline-block;
-  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2);
+  box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.2);
+}
+:root[data-theme="dark"] .status-dot,
+:root[data-theme="dark"] .live-pill i,
+:root[data-theme="dark"] .cert-status i {
+  box-shadow: 0 0 0 4px rgba(41, 151, 255, 0.25);
 }
 .hero-kicker {
   margin-top: 32px;
@@ -269,12 +342,12 @@ button {
   align-items: center;
   justify-content: center;
   gap: 10px;
-  padding: 13px 22px;
+  padding: 13px 24px;
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.3px;
   border: 1px solid transparent;
-  border-radius: var(--radius);
+  border-radius: 980px;
   transition:
     transform 0.2s,
     background 0.2s,
@@ -287,6 +360,9 @@ button {
 .button-primary {
   background: var(--accent);
   color: #ffffff;
+}
+.button-primary:hover {
+  background: var(--accent2);
 }
 .button-secondary {
   border-color: var(--line);
@@ -609,12 +685,12 @@ button {
 }
 .stat-card-accent {
   background: var(--accent);
-  color: #022c19;
+  color: #ffffff;
   border-color: var(--accent);
 }
 .stat-card-accent .stat-label,
 .stat-card-accent .stat-detail {
-  color: #064e3b;
+  color: rgba(255, 255, 255, 0.9);
 }
 .stat-symbol {
   margin-bottom: 13px;
@@ -840,9 +916,9 @@ button {
   height: 118px;
   border-radius: 50%;
   background: conic-gradient(
-    var(--accent) 0 33%,
-    #8de0b7 33% 63%,
-    #343b46 63% 100%
+    var(--accent) 0 40%,
+    var(--accent2) 40% 70%,
+    var(--line) 70% 100%
   );
   display: grid;
   place-items: center;
@@ -1144,13 +1220,13 @@ button {
   font-weight: 600;
   padding: 8px 14px;
   cursor: pointer;
-  border-radius: var(--radius);
+  border-radius: 980px;
   transition: all 0.2s ease;
 }
 .filter-pills button.active,
 .filter-pills button:hover {
   background: var(--accent);
-  color: #022c19;
+  color: #ffffff;
   border-color: var(--accent);
 }
 .cert-search {
@@ -1402,20 +1478,24 @@ button {
 .contact-form input,
 .contact-form textarea {
   width: 100%;
-  border: 1px solid var(--line);
-  background: var(--surface);
+  border: 1px solid var(--border);
+  background: var(--input-bg);
   padding: 13px 15px;
-  color: var(--text);
+  color: var(--text-primary);
   outline: 0;
   font-size: 14px;
   resize: vertical;
   border-radius: var(--radius);
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 }
 .contact-form input:focus,
 .contact-form textarea:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+  box-shadow: 0 0 0 3.5px rgba(0, 113, 227, 0.2);
+}
+:root[data-theme="dark"] .contact-form input:focus,
+:root[data-theme="dark"] .contact-form textarea:focus {
+  box-shadow: 0 0 0 3.5px rgba(41, 151, 255, 0.25);
 }
 .form-submit {
   width: 100%;
@@ -2006,176 +2086,176 @@ button {
 }
 
 /* ==========================================================================
-   Theme: DARK MODE (Default or Cookie hil_theme=dark)
+   Theme: DARK MODE (site-theme=dark)
    ========================================================================== */
 .ai-loader-overlay,
 :root[data-theme="dark"] .ai-loader-overlay,
 .ai-loader-overlay[data-theme="dark"] {
-  background-color: #0a0d14;
+  background-color: #000000;
 }
 
 :root,
 :root[data-theme="dark"],
 .ai-loader-overlay,
 .ai-loader-overlay[data-theme="dark"] {
-  --spinner-track: rgba(16, 185, 129, 0.18);
-  --spinner-glow: rgba(16, 185, 129, 0.7);
+  --spinner-track: rgba(41, 151, 255, 0.2);
+  --spinner-glow: rgba(41, 151, 255, 0.6);
 }
 
 :root[data-theme="dark"] .ai-loader-message,
 .ai-loader-overlay[data-theme="dark"] .ai-loader-message {
-  color: #f8fafc;
+  color: #F5F5F7;
 }
 
 :root[data-theme="dark"] .ai-loader-cursor,
 .ai-loader-overlay[data-theme="dark"] .ai-loader-cursor {
-  color: #00f0ff;
+  color: #2997FF;
 }
 
 :root[data-theme="dark"] .ai-dot,
 .ai-loader-overlay[data-theme="dark"] .ai-dot {
-  background: #10b981;
-  box-shadow: 0 0 10px rgba(16, 185, 129, 0.8), 0 0 18px rgba(0, 240, 255, 0.5);
+  background: #2997FF;
+  box-shadow: 0 0 10px rgba(41, 151, 255, 0.7);
 }
 
 :root[data-theme="dark"] .ai-loader-status-card,
 .ai-loader-overlay[data-theme="dark"] .ai-loader-status-card {
-  background: rgba(15, 23, 42, 0.78);
+  background: rgba(22, 22, 23, 0.88);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  border: 1px solid rgba(148, 163, 184, 0.25);
-  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.5), 0 0 18px rgba(56, 189, 248, 0.1);
+  border: 1px solid #38383A;
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.5), 0 0 18px rgba(41, 151, 255, 0.1);
 }
 
 :root[data-theme="dark"] .ai-status-text,
 .ai-loader-overlay[data-theme="dark"] .ai-status-text {
-  color: #cbd5e1;
+  color: #A1A1A6;
 }
 
 :root[data-theme="dark"] .ai-retry-btn,
 .ai-loader-overlay[data-theme="dark"] .ai-retry-btn {
-  border: 1px solid var(--accent, #10b981);
-  color: var(--accent, #10b981);
-  box-shadow: 0 0 10px rgba(16, 185, 129, 0.18);
+  border: 1px solid #2997FF;
+  color: #2997FF;
+  box-shadow: 0 0 10px rgba(41, 151, 255, 0.18);
 }
 
 :root[data-theme="dark"] .ai-retry-btn:hover,
 .ai-loader-overlay[data-theme="dark"] .ai-retry-btn:hover {
-  background: var(--accent, #10b981);
-  color: #0a0d14;
-  box-shadow: 0 0 20px rgba(16, 185, 129, 0.45);
+  background: #2997FF;
+  color: #ffffff;
+  box-shadow: 0 0 20px rgba(41, 151, 255, 0.45);
 }
 
 :root[data-theme="dark"] .ai-proceed-btn,
 .ai-loader-overlay[data-theme="dark"] .ai-proceed-btn {
-  border: 1px solid #38bdf8;
-  color: #38bdf8;
-  box-shadow: 0 0 10px rgba(56, 189, 248, 0.18);
+  border: 1px solid #2997FF;
+  color: #2997FF;
+  box-shadow: 0 0 10px rgba(41, 151, 255, 0.18);
   font-weight: 600;
 }
 
 :root[data-theme="dark"] .ai-proceed-btn:hover,
 .ai-loader-overlay[data-theme="dark"] .ai-proceed-btn:hover {
-  background: #38bdf8;
-  color: #0a0d14;
-  box-shadow: 0 0 20px rgba(56, 189, 248, 0.45);
+  background: #40A9FF;
+  color: #ffffff;
+  box-shadow: 0 0 20px rgba(41, 151, 255, 0.45);
 }
 
 :root[data-theme="dark"] .ai-refresh-btn,
 .ai-loader-overlay[data-theme="dark"] .ai-refresh-btn {
-  border: 1px solid rgba(148, 163, 184, 0.5);
-  color: #94a3b8;
+  border: 1px solid #38383A;
+  color: #A1A1A6;
 }
 
 :root[data-theme="dark"] .ai-refresh-btn:hover,
 .ai-loader-overlay[data-theme="dark"] .ai-refresh-btn:hover {
-  background: rgba(148, 163, 184, 0.2);
-  color: #f8fafc;
+  background: #1C1C1E;
+  color: #F5F5F7;
 }
 
 /* ==========================================================================
-   Theme: LIGHT MODE (Cookie hil_theme=light)
+   Theme: LIGHT MODE (site-theme=light)
    ========================================================================== */
 :root[data-theme="light"] .ai-loader-overlay,
 .ai-loader-overlay[data-theme="light"] {
-  background-color: #f8fafc;
+  background-color: #FFFFFF;
 }
 
 :root[data-theme="light"],
 .ai-loader-overlay[data-theme="light"] {
-  --spinner-track: rgba(5, 150, 105, 0.18);
-  --spinner-glow: rgba(5, 150, 105, 0.4);
+  --spinner-track: rgba(0, 113, 227, 0.18);
+  --spinner-glow: rgba(0, 113, 227, 0.4);
 }
 
 :root[data-theme="light"] .ai-loader-message,
 .ai-loader-overlay[data-theme="light"] .ai-loader-message {
-  color: #0f172a;
+  color: #1D1D1F;
 }
 
 :root[data-theme="light"] .ai-loader-cursor,
 .ai-loader-overlay[data-theme="light"] .ai-loader-cursor {
-  color: #0284c7;
+  color: #0071E3;
 }
 
 :root[data-theme="light"] .ai-dot,
 .ai-loader-overlay[data-theme="light"] .ai-dot {
-  background: #059669;
-  box-shadow: 0 0 8px rgba(5, 150, 105, 0.6), 0 0 14px rgba(2, 132, 199, 0.35);
+  background: #0071E3;
+  box-shadow: 0 0 8px rgba(0, 113, 227, 0.5);
 }
 
 :root[data-theme="light"] .ai-loader-status-card,
 .ai-loader-overlay[data-theme="light"] .ai-loader-status-card {
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(245, 245, 247, 0.92);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  border: 1px solid rgba(226, 232, 240, 0.9);
-  box-shadow: 0 10px 32px rgba(15, 23, 42, 0.08), 0 0 16px rgba(14, 165, 233, 0.08);
+  border: 1px solid #D2D2D7;
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.08);
 }
 
 :root[data-theme="light"] .ai-status-text,
 .ai-loader-overlay[data-theme="light"] .ai-status-text {
-  color: #334155;
+  color: #6E6E73;
 }
 
 :root[data-theme="light"] .ai-retry-btn,
 .ai-loader-overlay[data-theme="light"] .ai-retry-btn {
-  border: 1px solid #059669;
-  color: #059669;
-  box-shadow: 0 0 10px rgba(5, 150, 105, 0.15);
+  border: 1px solid #0071E3;
+  color: #0071E3;
+  box-shadow: 0 0 10px rgba(0, 113, 227, 0.15);
 }
 
 :root[data-theme="light"] .ai-retry-btn:hover,
 .ai-loader-overlay[data-theme="light"] .ai-retry-btn:hover {
-  background: #059669;
+  background: #0071E3;
   color: #ffffff;
-  box-shadow: 0 0 20px rgba(5, 150, 105, 0.35);
+  box-shadow: 0 0 20px rgba(0, 113, 227, 0.35);
 }
 
 :root[data-theme="light"] .ai-proceed-btn,
 .ai-loader-overlay[data-theme="light"] .ai-proceed-btn {
-  border: 1px solid #0284c7;
-  color: #0284c7;
-  box-shadow: 0 0 10px rgba(2, 132, 199, 0.15);
+  border: 1px solid #0071E3;
+  color: #0071E3;
+  box-shadow: 0 0 10px rgba(0, 113, 227, 0.15);
   font-weight: 600;
 }
 
 :root[data-theme="light"] .ai-proceed-btn:hover,
 .ai-loader-overlay[data-theme="light"] .ai-proceed-btn:hover {
-  background: #0284c7;
+  background: #0077ED;
   color: #ffffff;
-  box-shadow: 0 0 20px rgba(2, 132, 199, 0.35);
+  box-shadow: 0 0 20px rgba(0, 113, 227, 0.35);
 }
 
 :root[data-theme="light"] .ai-refresh-btn,
 .ai-loader-overlay[data-theme="light"] .ai-refresh-btn {
-  border: 1px solid rgba(100, 116, 139, 0.4);
-  color: #64748b;
+  border: 1px solid #D2D2D7;
+  color: #6E6E73;
 }
 
 :root[data-theme="light"] .ai-refresh-btn:hover,
 .ai-loader-overlay[data-theme="light"] .ai-refresh-btn:hover {
-  background: rgba(100, 116, 139, 0.1);
-  color: #0f172a;
+  background: #E8E8ED;
+  color: #1D1D1F;
 }
 
 @keyframes cursorBlink {
