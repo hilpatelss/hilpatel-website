@@ -65,8 +65,9 @@ export function AboutSection({ site, stats, sectionConfig }) {
   };
 
   return (
-    <section className="section-wrap section-block" id="about">
-      <div className="section-heading reveal">
+    <section className="section-block about-section" id="about">
+      <div className="section-wrap">
+        <div className="section-heading reveal">
         <span className="section-index">{indexLabel}</span>
         <h2>
           {titleLine1}
@@ -125,6 +126,7 @@ export function AboutSection({ site, stats, sectionConfig }) {
             );
           })}
         </div>
+      </div>
       </div>
     </section>
   );

@@ -14,8 +14,9 @@ export function EducationSection({ education, sectionConfig }) {
   const titleLine2 = sectionConfig?.title_line2 || "of engineering.";
 
   return (
-    <section className="section-wrap section-block education-section" id="education">
-      <div className="section-heading reveal">
+    <section className="section-block education-section" id="education">
+      <div className="section-wrap">
+        <div className="section-heading reveal">
         <span className="section-index">{indexLabel}</span>
         <h2>
           {titleLine1}
@@ -47,6 +48,7 @@ export function EducationSection({ education, sectionConfig }) {
             <p>No education history listed at this time.</p>
           </div>
         )}
+      </div>
       </div>
     </section>
   );

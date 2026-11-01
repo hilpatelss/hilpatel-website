@@ -40,8 +40,9 @@ export function ProjectsSection({ projects, site, sectionConfig }) {
   };
 
   return (
-    <section className="section-wrap section-block projects-section" id="projects">
-      <div className="section-heading reveal">
+    <section className="section-block projects-section" id="projects">
+      <div className="section-wrap">
+        <div className="section-heading reveal">
         <span className="section-index">{indexLabel}</span>
         <h2>
           {titleLine1}
@@ -128,6 +129,7 @@ export function ProjectsSection({ projects, site, sectionConfig }) {
           </p>
         </div>
       )}
+      </div>
     </section>
   );
 }

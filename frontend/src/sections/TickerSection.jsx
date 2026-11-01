@@ -15,7 +15,7 @@ export function TickerSection({ items }) {
   const trackItems = [...tickerList, ...tickerList];
 
   return (
-    <section className="section-wrap" aria-label="Core tools">
+    <section className="ticker-section" aria-label="Core tools">
       <div className="ticker">
         <div className="ticker-track">
           {trackItems.map((item, idx) => (

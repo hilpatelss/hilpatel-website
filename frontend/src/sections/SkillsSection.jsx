@@ -14,8 +14,9 @@ export function SkillsSection({ skills, sectionConfig }) {
   const titleLine2 = sectionConfig?.title_line2 || "find the story.";
 
   return (
-    <section className="section-wrap section-block skills-section" id="skills">
-      <div className="section-heading reveal">
+    <section className="section-block skills-section" id="skills">
+      <div className="section-wrap">
+        <div className="section-heading reveal">
         <span className="section-index">{indexLabel}</span>
         <h2>
           {titleLine1}
@@ -86,6 +87,7 @@ export function SkillsSection({ skills, sectionConfig }) {
             </div>
           )}
         </div>
+      </div>
       </div>
     </section>
   );

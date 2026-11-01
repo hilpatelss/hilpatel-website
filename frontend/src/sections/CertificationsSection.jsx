@@ -33,8 +33,9 @@ export function CertificationsSection({ certifications, sectionConfig }) {
   }, [certifications, certFilter, certSearch]);
 
   return (
-    <section className="section-wrap section-block cert-section" id="certifications">
-      <div className="section-heading reveal">
+    <section className="section-block cert-section" id="certifications">
+      <div className="section-wrap">
+        <div className="section-heading reveal">
         <span className="section-index">{indexLabel}</span>
         <h2>
           {titleLine1}
@@ -115,6 +116,7 @@ export function CertificationsSection({ certifications, sectionConfig }) {
       <p className="section-footnote">
         Verification URLs and completion dates were not present in the supplied resume; add them when available.
       </p>
+      </div>
     </section>
   );
 }

@@ -12,8 +12,9 @@ import { ExternalLink } from 'lucide-react';
 
 export function Footer({ site }) {
   return (
-    <footer className="footer">
-      <div className="footer-top">
+    <footer className="footer-wrap">
+      <div className="footer section-wrap">
+        <div className="footer-top">
         <a className="brand" href="#home">
           <span className="brand-mark">
             {site?.brand_mark_initial || 'H'}<span>{site?.brand_mark_accent || '.'}</span>
@@ -30,10 +31,11 @@ export function Footer({ site }) {
           BACK TO TOP <ExternalLink size={14} />
         </a>
       </div>
-      <div className="footer-bottom">
-        <span>{site?.footer_copyright || '© 2026 Hil Patel. Built with intention.'}</span>
-        <span>{site?.footer_tech_stack || 'REACT · DJANGO REST FRAMEWORK'}</span>
-        <span>{site?.footer_location || 'GUJARAT, INDIA'}</span>
+        <div className="footer-bottom">
+          <span>{site?.footer_copyright || '© 2026 Hil Patel. Built with intention.'}</span>
+          <span>{site?.footer_tech_stack || 'REACT · DJANGO REST FRAMEWORK'}</span>
+          <span>{site?.footer_location || 'GUJARAT, INDIA'}</span>
+        </div>
       </div>
     </footer>
   );

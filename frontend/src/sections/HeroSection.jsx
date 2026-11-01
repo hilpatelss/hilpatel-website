@@ -32,8 +32,9 @@ export function HeroSection({ site, heroMetrics }) {
   };
 
   return (
-    <section className="hero section-wrap" id="home">
-      <div className="hero-copy reveal">
+    <section className="hero-section" id="home">
+      <div className="hero section-wrap">
+        <div className="hero-copy reveal">
         <div className="eyebrow">
           <span className="status-dot" /> {site?.hero_eyebrow || 'OPEN TO ENTRY-LEVEL OPPORTUNITIES'}
         </div>
@@ -156,10 +157,11 @@ export function HeroSection({ site, heroMetrics }) {
         <div className="hero-orbit orbit-two" />
       </div>
 
-      <a className="scroll-cue" href="#about">
-        <span>SCROLL TO EXPLORE</span>
-        <ChevronDown size={15} />
-      </a>
+        <a className="scroll-cue" href="#about">
+          <span>SCROLL TO EXPLORE</span>
+          <ChevronDown size={15} />
+        </a>
+      </div>
     </section>
   );
 }

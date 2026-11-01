@@ -28,8 +28,9 @@ export function AchievementsSection({ achievements, sectionConfig }) {
   };
 
   return (
-    <section className="section-wrap section-block achievements-section" id="achievements">
-      <div className="section-heading reveal">
+    <section className="section-block achievements-section" id="achievements">
+      <div className="section-wrap">
+        <div className="section-heading reveal">
         <span className="section-index">{indexLabel}</span>
         <h2>
           {titleLine1}
@@ -55,6 +56,7 @@ export function AchievementsSection({ achievements, sectionConfig }) {
             <p>No achievements listed at this time.</p>
           </div>
         )}
+      </div>
       </div>
     </section>
   );
