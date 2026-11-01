@@ -21,6 +21,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.throttling import ScopedRateThrottle
+from rest_framework.parsers import BaseParser, JSONParser, FormParser, MultiPartParser
 
 from .models import VisitorLog, AnalyticsSession, AnalyticsPageView, AnalyticsEvent
 from .serializers import (
@@ -35,6 +36,24 @@ from .utils import get_client_ip, parse_user_agent, classify_referrer, sanitize_
 logger = logging.getLogger(__name__)
 
 
+class PlainTextOrJSONParser(BaseParser):
+    """
+    Accepts application/json, text/plain (used by navigator.sendBeacon), or raw stream payload.
+    Ensures sendBeacon unload calls never fail with 415 Unsupported Media Type.
+    """
+    media_type = '*/*'
+
+    def parse(self, stream, media_type=None, parser_context=None):
+        raw = stream.read()
+        if not raw:
+            return {}
+        try:
+            import json
+            return json.loads(raw.decode('utf-8'))
+        except Exception:
+            return {}
+
+
 def extract_location_metadata(request):
     """Extracts country, city, and timezone from CDN/Cloudflare headers."""
     cf_country = (request.META.get('HTTP_CF_IPCOUNTRY') or '').strip()
@@ -43,6 +62,21 @@ def extract_location_metadata(request):
         'country': cf_country[:100],
         'city': cf_city[:100],
     }
+
+
+def extract_request_payload(request):
+    """Safely extracts dictionary payload from request.data or raw request.body."""
+    if hasattr(request, 'data') and isinstance(request.data, dict) and request.data:
+        return request.data
+    if hasattr(request, 'body') and request.body:
+        import json
+        try:
+            parsed = json.loads(request.body.decode('utf-8'))
+            if isinstance(parsed, dict):
+                return parsed
+        except Exception:
+            pass
+    return getattr(request, 'data', {}) or {}
 
 
 class VisitorLogView(APIView):
@@ -134,15 +168,17 @@ class SessionTrackingView(APIView):
     permission_classes = [AllowAny]
     throttle_classes = [ScopedRateThrottle]
     throttle_scope = 'analytics_ingest'
+    parser_classes = [PlainTextOrJSONParser, JSONParser, FormParser, MultiPartParser]
 
     def post(self, request, *args, **kwargs):
-        serializer = AnalyticsSessionSerializer(data=request.data)
+        payload = extract_request_payload(request)
+        serializer = AnalyticsSessionSerializer(data=payload)
         if not serializer.is_valid():
             return Response({"error": "Invalid payload", "details": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
         data = serializer.validated_data
         session_id = data['session_id']
-        visitor_id = data['visitor_id']
+        visitor_id = data.get('visitor_id') or session_id
         now = timezone.now()
 
         try:
@@ -172,7 +208,10 @@ class SessionTrackingView(APIView):
                 session.browser_category = data.get('browser_category') or ua_info['browser_category']
                 session.os_category = data.get('os_category') or ua_info['os_category']
                 
-                host = request.get_host()
+                try:
+                    host = request.get_host()
+                except Exception:
+                    host = ''
                 ref_source, clean_ref = classify_referrer(data.get('referrer', ''), host)
                 # Check campaign tags
                 if data.get('utm_source') or data.get('utm_campaign'):
@@ -233,9 +272,11 @@ class PageViewTrackingView(APIView):
     permission_classes = [AllowAny]
     throttle_classes = [ScopedRateThrottle]
     throttle_scope = 'analytics_ingest'
+    parser_classes = [PlainTextOrJSONParser, JSONParser, FormParser, MultiPartParser]
 
     def post(self, request, *args, **kwargs):
-        serializer = AnalyticsPageViewSerializer(data=request.data)
+        payload = extract_request_payload(request)
+        serializer = AnalyticsPageViewSerializer(data=payload)
         if not serializer.is_valid():
             return Response({"error": "Invalid payload", "details": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -294,9 +335,11 @@ class EventTrackingView(APIView):
     permission_classes = [AllowAny]
     throttle_classes = [ScopedRateThrottle]
     throttle_scope = 'analytics_ingest'
+    parser_classes = [PlainTextOrJSONParser, JSONParser, FormParser, MultiPartParser]
 
     def post(self, request, *args, **kwargs):
-        serializer = AnalyticsEventSerializer(data=request.data)
+        payload = extract_request_payload(request)
+        serializer = AnalyticsEventSerializer(data=payload)
         if not serializer.is_valid():
             return Response({"error": "Invalid payload", "details": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -354,9 +397,11 @@ class BeaconFlushView(APIView):
     permission_classes = [AllowAny]
     throttle_classes = [ScopedRateThrottle]
     throttle_scope = 'analytics_ingest'
+    parser_classes = [PlainTextOrJSONParser, JSONParser, FormParser, MultiPartParser]
 
     def post(self, request, *args, **kwargs):
-        serializer = AnalyticsBeaconSerializer(data=request.data)
+        payload = extract_request_payload(request)
+        serializer = AnalyticsBeaconSerializer(data=payload)
         if not serializer.is_valid():
             return Response({"error": "Invalid payload", "details": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 

@@ -15,7 +15,10 @@ const SESSION_STORAGE_KEY = 'hil_analytics_session';
 const VISITOR_STORAGE_KEY = 'hil_analytics_visitor';
 const IDLE_THRESHOLD_MS = 60 * 1000; // 60 seconds of inactivity = idle
 const HEARTBEAT_INTERVAL_MS = 25 * 1000; // 25 seconds active heartbeat
-const API_BASE = '/api/v1/analytics';
+const rawBaseUrl = import.meta.env.VITE_API_URL || 'https://api.hilpatel.site/api/v1';
+const BASE_URL = rawBaseUrl.replace(/\/+$/, '');
+const API_BASE = `${BASE_URL}/analytics`;
+const isDev = Boolean(import.meta.env.DEV);
 
 /**
  * Generates an anonymous random UUIDv4 string.
@@ -182,13 +185,25 @@ class AnalyticsEngine {
       utm_campaign: utm.utm_campaign,
     };
 
+    if (isDev) {
+      console.log('[Analytics] Handshake initiating with', `${API_BASE}/session/`);
+    }
+
     fetch(`${API_BASE}/session/`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
-    }).catch(() => {
-      // Non-blocking telemetry fallback
-    });
+    })
+      .then((res) => {
+        if (isDev && res.ok) {
+          console.log('[Analytics] Session active:', this.sessionId);
+        } else if (isDev) {
+          console.warn('[Analytics] Session init status:', res.status);
+        }
+      })
+      .catch((err) => {
+        if (isDev) console.warn('[Analytics] Session init connection failure:', err);
+      });
   }
 
   setupActivityListeners() {
@@ -254,8 +269,12 @@ class AnalyticsEngine {
     const url = `${API_BASE}/beacon/`;
     const bodyStr = JSON.stringify(payload);
 
+    if (isDev && delta > 0) {
+      console.log(`[Analytics] Flushing active dwell duration: +${delta}s`);
+    }
+
     if (navigator.sendBeacon && typeof Blob !== 'undefined') {
-      const blob = new Blob([bodyStr], { type: 'application/json' });
+      const blob = new Blob([bodyStr], { type: 'text/plain' });
       const sent = navigator.sendBeacon(url, blob);
       if (sent) return;
     }
@@ -267,7 +286,15 @@ class AnalyticsEngine {
         headers: { 'Content-Type': 'application/json' },
         body: bodyStr,
         keepalive: true,
-      }).catch(() => {});
+      })
+        .then((res) => {
+          if (isDev && res.ok && delta > 0) {
+            console.log(`[Analytics] Heartbeat flushed: +${delta}s`);
+          }
+        })
+        .catch((err) => {
+          if (isDev) console.warn('[Analytics] Heartbeat flush failed:', err);
+        });
     } catch (e) {}
   }
 
@@ -298,7 +325,13 @@ class AnalyticsEngine {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
-    }).catch(() => {});
+    })
+      .then((res) => {
+        if (isDev && res.ok) console.log('[Analytics] PageView recorded:', pagePath);
+      })
+      .catch((err) => {
+        if (isDev) console.warn('[Analytics] PageView dispatch failed:', err);
+      });
   }
 
   setupClickDelegation() {
@@ -365,7 +398,13 @@ class AnalyticsEngine {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
-    }).catch(() => {});
+    })
+      .then((res) => {
+        if (isDev && res.ok) console.log(`[Analytics] Event tracked: ${event_type} (${element_label || '-'})`);
+      })
+      .catch((err) => {
+        if (isDev) console.warn('[Analytics] Event dispatch failed:', err);
+      });
   }
 
   setupUnloadFlush() {
