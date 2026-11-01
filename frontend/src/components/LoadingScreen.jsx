@@ -93,10 +93,10 @@ export function LoadingScreen({
     setIsDismissing(false);
     setHasWaited10s(false);
 
-    // Wait exactly 10s before showing polite status guidance if server takes longer
+    // Wait exactly 30s before showing polite status guidance if server takes longer
     const waitTimer = setTimeout(() => {
       setHasWaited10s(true);
-    }, 10000);
+    }, 30000);
 
     return () => clearTimeout(waitTimer);
   }, [sessionKey]);
@@ -180,38 +180,16 @@ export function LoadingScreen({
       aria-label="Loading portfolio"
     >
       <div className="ai-loader-container">
-        {/* High-Performance Smoothly Spinning Modern Loader */}
-        <div className="brand-spinner-container" aria-hidden="true">
-          <svg className="brand-spinner-svg" viewBox="0 0 50 50">
-            <defs>
-              <linearGradient id="brand-spinner-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="var(--spinner-c1, #00f0ff)" />
-                <stop offset="50%" stopColor="var(--spinner-c2, #10b981)" />
-                <stop offset="100%" stopColor="var(--spinner-c3, #06b6d4)" />
-              </linearGradient>
-            </defs>
-            {/* Background circular track */}
-            <circle
-              className="brand-spinner-track"
-              cx="25"
-              cy="25"
-              r="20"
-              fill="none"
-              strokeWidth="3.5"
-            />
-            {/* High-contrast animated spinning arc */}
-            <circle
-              className="brand-spinner-arc"
-              cx="25"
-              cy="25"
-              r="20"
-              fill="none"
-              stroke="url(#brand-spinner-gradient)"
-              strokeWidth="4"
-              strokeLinecap="round"
-            />
-          </svg>
-          <div className="brand-spinner-pulsar" />
+        {/* Modern Animated Multi-Ring Glowing Loader */}
+        <div className="modern-animated-loader" aria-hidden="true">
+          <div className="loader-ripple ripple-1" />
+          <div className="loader-ripple ripple-2" />
+          <div className="loader-ring-wrap">
+            <span className="loader-ring-outer" />
+            <span className="loader-ring-mid" />
+            <span className="loader-ring-inner" />
+            <span className="loader-glowing-core" />
+          </div>
         </div>
 
         {/* Loading Message with Typewriter Effect and Blinking Cursor */}
@@ -223,18 +201,13 @@ export function LoadingScreen({
         </div>
 
         {/* Three Glowing Pulsing Dots Beneath Message */}
-        <div className="ai-loader-dots" aria-hidden="true">
-          <span className="ai-dot ai-dot-1" />
-          <span className="ai-dot ai-dot-2" />
-          <span className="ai-dot ai-dot-3" />
-        </div>
-
+      
         {/* Non-blocking Status & Guidance (Only after 10s wait state) */}
         {showFailedState && (
           <div className="ai-loader-status-card" role="alert">
             <p className="ai-status-text">
               {apiStatus === 'error'
-                ? "Connecting to backend is taking a little longer (Render free tier wakes in ~30-50s)."
+                ? "Connecting to backend is taking a little longer."
                 : "Still initializing server connection... Thank you for your patience."}
             </p>
             <div className="ai-status-actions">
@@ -244,13 +217,6 @@ export function LoadingScreen({
                 onClick={handleRetry}
               >
                 Retry Connection
-              </button>
-              <button
-                type="button"
-                className="ai-action-btn ai-proceed-btn"
-                onClick={handleProceed}
-              >
-                Explore Portfolio →
               </button>
               <button
                 type="button"
