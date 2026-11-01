@@ -81,7 +81,7 @@ class AnalyticsSessionSerializer(serializers.Serializer):
     Validates session start and heartbeat updates.
     """
     session_id = serializers.CharField(max_length=64)
-    visitor_id = serializers.CharField(max_length=64, required=False, allow_blank=True, default='')
+    visitor_id = serializers.CharField(max_length=64)
     landing_page = serializers.CharField(max_length=255, required=False, default='/')
     current_page = serializers.CharField(max_length=255, required=False, default='/')
     referrer = serializers.CharField(max_length=500, required=False, allow_blank=True, default='')
