@@ -20,6 +20,7 @@ def get_client_ip(request):
 
 class ContactSubmissionView(APIView):
     permission_classes = [AllowAny]
+    authentication_classes = []
     throttle_classes = [ScopedRateThrottle]
     throttle_scope = 'contact'
 

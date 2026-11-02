@@ -1477,7 +1477,6 @@ button {
 }
 .contact-section {
   border-top: 1px solid var(--line);
-  background: var(--surface2);
 }
 .contact-layout {
   display: grid;

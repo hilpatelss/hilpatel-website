@@ -51,6 +51,7 @@ class VisitorLogView(APIView):
     Rate-limited and fully isolated from core portfolio operations.
     """
     permission_classes = [AllowAny]
+    authentication_classes = []
     throttle_classes = [ScopedRateThrottle]
     throttle_scope = 'visitor_log'
 
@@ -132,6 +133,7 @@ class SessionTrackingView(APIView):
     Initiates or updates an AnalyticsSession with active duration heartbeat.
     """
     permission_classes = [AllowAny]
+    authentication_classes = []
     throttle_classes = [ScopedRateThrottle]
     throttle_scope = 'analytics_ingest'
 
@@ -231,6 +233,7 @@ class PageViewTrackingView(APIView):
     Records page view transitions and page-specific active duration.
     """
     permission_classes = [AllowAny]
+    authentication_classes = []
     throttle_classes = [ScopedRateThrottle]
     throttle_scope = 'analytics_ingest'
 
@@ -292,6 +295,7 @@ class EventTrackingView(APIView):
     Records clicked links, buttons, resume downloads, and CTAs.
     """
     permission_classes = [AllowAny]
+    authentication_classes = []
     throttle_classes = [ScopedRateThrottle]
     throttle_scope = 'analytics_ingest'
 
@@ -352,11 +356,19 @@ class BeaconFlushView(APIView):
     Flushes pending active seconds and optional queued events.
     """
     permission_classes = [AllowAny]
+    authentication_classes = []
     throttle_classes = [ScopedRateThrottle]
     throttle_scope = 'analytics_ingest'
 
     def post(self, request, *args, **kwargs):
-        serializer = AnalyticsBeaconSerializer(data=request.data)
+        payload = request.data
+        if not payload and request.body:
+            import json
+            try:
+                payload = json.loads(request.body.decode('utf-8'))
+            except Exception:
+                payload = {}
+        serializer = AnalyticsBeaconSerializer(data=payload)
         if not serializer.is_valid():
             return Response({"error": "Invalid payload", "details": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 

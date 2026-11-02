@@ -15,7 +15,9 @@ const SESSION_STORAGE_KEY = 'hil_analytics_session';
 const VISITOR_STORAGE_KEY = 'hil_analytics_visitor';
 const IDLE_THRESHOLD_MS = 60 * 1000; // 60 seconds of inactivity = idle
 const HEARTBEAT_INTERVAL_MS = 25 * 1000; // 25 seconds active heartbeat
-const API_BASE = '/api/v1/analytics';
+const rawBaseUrl = import.meta.env.VITE_API_URL || 'https://api.hilpatel.site/api/v1';
+const BASE_URL = rawBaseUrl.replace(/\/+$/, '');
+const API_BASE = `${BASE_URL}/analytics`;
 
 /**
  * Generates an anonymous random UUIDv4 string.
@@ -186,6 +188,7 @@ class AnalyticsEngine {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
+      credentials: 'omit',
     }).catch(() => {
       // Non-blocking telemetry fallback
     });
@@ -255,7 +258,7 @@ class AnalyticsEngine {
     const bodyStr = JSON.stringify(payload);
 
     if (navigator.sendBeacon && typeof Blob !== 'undefined') {
-      const blob = new Blob([bodyStr], { type: 'application/json' });
+      const blob = new Blob([bodyStr], { type: 'text/plain;charset=UTF-8' });
       const sent = navigator.sendBeacon(url, blob);
       if (sent) return;
     }
@@ -267,6 +270,7 @@ class AnalyticsEngine {
         headers: { 'Content-Type': 'application/json' },
         body: bodyStr,
         keepalive: true,
+        credentials: 'omit',
       }).catch(() => {});
     } catch (e) {}
   }
@@ -298,6 +302,7 @@ class AnalyticsEngine {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
+      credentials: 'omit',
     }).catch(() => {});
   }
 
@@ -365,6 +370,7 @@ class AnalyticsEngine {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
+      credentials: 'omit',
     }).catch(() => {});
   }
 
