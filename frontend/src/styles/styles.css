@@ -613,6 +613,7 @@ button {
   bottom: 2px;
 }
 .about-section {
+  margin-top: 100px;
   border-top: 1px solid var(--line);
 }
 .about-layout {
