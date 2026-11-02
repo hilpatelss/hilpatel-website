@@ -249,7 +249,7 @@ button {
   gap: 50px;
   position: relative;
   padding-top: 45px;
-  padding-bottom: 85px;
+  padding-bottom: 160px;
 }
 .eyebrow,
 .hero-kicker,
@@ -614,9 +614,6 @@ button {
 }
 .about-section {
   border-top: 1px solid var(--line);
-}
-.ticker-section + .about-section {
-  border-top: none;
 }
 .about-layout {
   display: grid;
