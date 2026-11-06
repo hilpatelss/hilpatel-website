@@ -1,3 +1,23 @@
+"""
+==============================================================================
+Visitor Analytics Model (apps/analytics/models.py)
+==============================================================================
+
+WHAT IS THIS FILE?
+Provides anonymous, privacy-focused traffic telemetry for hilpatel.site.
+
+WHAT DOES IT RECORD?
+- Visited page route (e.g. '/' or '/#projects')
+- Active theme at time of visit ('dark' or 'light')
+- Device category (desktop, tablet, mobile) and screen resolution
+- Approximate geographic location (Country, City, Timezone)
+- Network IP address and User-Agent
+
+PRIVACY & SECURITY:
+This data is completely private. There is no public API to read these records;
+they are accessible exclusively by Hil Patel inside the Django Admin dashboard.
+"""
+
 from django.db import models
 from apps.core.models import TimeStampedModel
 
@@ -114,6 +134,7 @@ class VisitorLog(TimeStampedModel):
         verbose_name = 'Visitor Log'
         verbose_name_plural = 'Visitor Logs'
         ordering = ['-created_at']
+        # Database indexes ensure fast sorting and dashboard queries in the admin
         indexes = [
             models.Index(fields=['-created_at', 'active_theme']),
             models.Index(fields=['-created_at', 'device_category']),
@@ -123,3 +144,4 @@ class VisitorLog(TimeStampedModel):
 
     def __str__(self):
         return f"[{self.created_at.strftime('%Y-%m-%d %H:%M:%S')}] {self.path} ({self.active_theme}) - {self.device_category}"
+

@@ -1,3 +1,21 @@
+"""
+==============================================================================
+Featured Projects & Case Studies Models (apps/projects/models.py)
+==============================================================================
+
+WHAT IS THIS FILE?
+Defines the database models for Hil Patel's portfolio case studies.
+Every project card you see on the website is powered by these models.
+
+MODELS DEFINED HERE:
+1. `ProjectCategory`: Categorizes projects (e.g. "Power BI", "Data Analytics").
+2. `TechnologyTag`: Reusable technology labels (e.g. Python, SQL, DAX, PostgreSQL).
+3. `Project`: The main project model containing title, summary, repository link,
+   and `custom_art_type` (connects to the frontend's procedural chart visuals).
+4. `ProjectHighlight`: Bullet points describing specific results with green checkmarks.
+5. `ProjectImage`: Optional gallery screenshots for detailed project previews.
+"""
+
 from django.db import models
 from django.utils.text import slugify
 from apps.core.models import OrderableModel, TimeStampedModel
@@ -5,7 +23,7 @@ from apps.core.utils import generate_upload_path
 from apps.core.validators import validate_image_file
 
 class ProjectCategory(OrderableModel):
-    """Categories for projects (e.g. Power BI, Full-stack, Machine Learning)."""
+    """Categories for grouping projects (e.g. Power BI, Data Analytics, Web Systems)."""
     name = models.CharField(max_length=100, unique=True)
     slug = models.SlugField(max_length=120, unique=True, blank=True)
 
@@ -14,6 +32,7 @@ class ProjectCategory(OrderableModel):
         verbose_name_plural = "Project Categories"
 
     def save(self, *args, **kwargs):
+        # Automatically create URL slug from the category name (e.g. "Power BI" -> "power-bi")
         if not self.slug:
             self.slug = slugify(self.name)
         super().save(*args, **kwargs)
@@ -23,7 +42,7 @@ class ProjectCategory(OrderableModel):
 
 
 class TechnologyTag(TimeStampedModel):
-    """Reusable technology and tool tags (e.g. Python, DAX, PostgreSQL, Excel)."""
+    """Reusable technology and tool pills (e.g. Python, DAX, PostgreSQL, Excel)."""
     name = models.CharField(max_length=50, unique=True)
     slug = models.SlugField(max_length=60, unique=True, blank=True)
 
@@ -42,7 +61,10 @@ class TechnologyTag(TimeStampedModel):
 
 
 class Project(OrderableModel):
-    """Comprehensive portfolio project entry managed in Django Admin."""
+    """
+    Comprehensive portfolio project entry managed in Django Admin.
+    Stores metadata, links, descriptions, and visual chart selections.
+    """
     ART_TYPE_CHOICES = [
         ('kpi_bars', 'Animated KPI & Bar Chart (Digital Wellbeing style)'),
         ('donut_chart', 'Donut & Sparkline Chart (BMI & Risk style)'),
@@ -73,7 +95,7 @@ class Project(OrderableModel):
         help_text="Detailed case study explanation."
     )
     
-    # URLs
+    # External URLs and Links
     repository_url = models.URLField(
         blank=True, 
         default="", 
@@ -135,6 +157,7 @@ class Project(OrderableModel):
 
     def __str__(self):
         return f"{self.number} - {self.title}"
+
 
 
 class ProjectHighlight(TimeStampedModel):

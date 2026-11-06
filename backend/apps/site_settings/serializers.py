@@ -1,7 +1,28 @@
+"""
+==============================================================================
+Site Settings Serializers (apps/site_settings/serializers.py)
+==============================================================================
+
+WHAT IS A SERIALIZER?
+In Django REST Framework, a "Serializer" acts like a translator.
+Database rows in Python are complex objects with internal database IDs and pointers.
+Web browsers can only understand clean JSON text.
+A serializer takes a Django model and converts ("serializes") it into JSON.
+It can also calculate extra computed fields dynamically.
+
+KEY SERIALIZERS IN THIS FILE:
+1. `SiteSettingsSerializer`: Serializes global settings and computes the active resume link.
+2. `DesignSettingsSerializer`: Serializes theme colors and typography.
+3. `NavigationItemSerializer`: Serializes header menu links.
+4. `SectionConfigSerializer`: Serializes section visibility and custom titles.
+5. `HeroMetricSerializer`: Serializes metric pill badges.
+"""
+
 from rest_framework import serializers
 from .models import SiteSettings, DesignSettings, NavigationItem, SectionConfig, HeroMetric
 
 class SiteSettingsSerializer(serializers.ModelSerializer):
+    # Dynamic computed fields for full downloadable URLs
     resume_download_url = serializers.SerializerMethodField()
     profile_image_url = serializers.SerializerMethodField()
     favicon_url = serializers.SerializerMethodField()
@@ -51,6 +72,14 @@ class SiteSettingsSerializer(serializers.ModelSerializer):
         ]
 
     def get_resume_download_url(self, obj):
+        """
+        Calculates the best available resume PDF URL.
+        Priority:
+        1. Direct admin-managed URL (best for persistent hosting on Google Drive / S3 / GitHub)
+        2. Uploaded resume file in media storage
+        3. Secondary button URL
+        4. Safe default: "/resume.pdf"
+        """
         # 1. Direct admin-managed URL (best for persistent hosting across free dynos/containers)
         if getattr(obj, 'resume_url', None) and obj.resume_url.strip():
             return obj.resume_url.strip()
@@ -74,16 +103,19 @@ class SiteSettingsSerializer(serializers.ModelSerializer):
         return "/resume.pdf"
 
     def get_profile_image_url(self, obj):
+        """Builds a full HTTP web link for the profile image."""
         if obj.profile_image:
             request = self.context.get('request')
             return request.build_absolute_uri(obj.profile_image.url) if request else obj.profile_image.url
         return None
 
     def get_favicon_url(self, obj):
+        """Builds a full HTTP web link for the website favicon."""
         if obj.favicon:
             request = self.context.get('request')
             return request.build_absolute_uri(obj.favicon.url) if request else obj.favicon.url
         return None
+
 
 
 class DesignSettingsSerializer(serializers.ModelSerializer):

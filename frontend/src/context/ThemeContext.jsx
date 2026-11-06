@@ -1,18 +1,31 @@
 /**
- * Centralized Theme Management System for hilpatel.site
+ * ==============================================================================
+ * Centralized Theme Management Context (ThemeContext.jsx)
+ * ==============================================================================
  *
- * Implements Apple-inspired light and dark mode functionality:
- * - Cookie name: 'site-theme' (allowed values: 'light' | 'dark').
- * - 1-year expiration (max-age=31536000), Path=/, SameSite=Lax, Secure when HTTPS.
- * - Automatic OS theme detection (prefers-color-scheme) on first visit when no cookie is set.
- * - If device detection is unavailable, defaults to 'light'.
- * - Saved preference in cookie takes priority and is preserved across navigation and visits.
- * - Backward compatibility with legacy 'hil_theme' and localStorage backup.
- * - Dynamic OS theme listener when no explicit preference exists.
- * - Synchronizes active theme to HTML document.documentElement[data-theme].
+ * WHAT IS THIS FILE?
+ * This file provides the Dark Mode / Light Mode system for the entire website,
+ * inspired by Apple's clean design language.
+ *
+ * WHAT IS A REACT CONTEXT?
+ * Normally in React, to share data between components, you have to pass it down
+ * step-by-step through "props". A React Context is like a global radio broadcast:
+ * any component anywhere in the tree can tune in with `useTheme()` and find out
+ * whether dark mode or light mode is active, or toggle the theme with one click.
+ *
+ * HOW DOES PERSISTENCE WORK?
+ * 1. Cookie 'site-theme': Stores 'light' or 'dark' for 1 full year so returning visitors
+ *    see their preferred theme immediately.
+ * 2. localStorage: Serves as a backup copy in the visitor's browser.
+ * 3. System Detection: If a visitor arrives for the very first time and hasn't picked
+ *    a theme yet, it checks their device/OS setting (`prefers-color-scheme`).
+ * 4. DOM Sync: Sets `data-theme="dark"` or `data-theme="light"` on the `<html>` element,
+ *    which activates the matching CSS rules in `styles.css`.
  */
+
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
+// Create the Context radio station
 const ThemeContext = createContext();
 
 export const THEME_COOKIE_NAME = 'site-theme';
@@ -21,8 +34,9 @@ const THEME_STORAGE_KEY = 'site-theme';
 const LEGACY_STORAGE_KEY = 'hil-theme';
 
 /**
- * Checks system-level color scheme preference.
- * Defaults to 'light' if device detection is unavailable.
+ * Checks the visitor's computer or smartphone operating system setting.
+ * If their phone is in Dark Mode, this returns 'dark'. If unknown, defaults to 'light'.
+ * 
  * @returns {'dark'|'light'}
  */
 export function getSystemTheme() {
@@ -34,9 +48,10 @@ export function getSystemTheme() {
 }
 
 /**
- * Helper to extract cookie value by name.
- * @param {string} name 
- * @returns {string|null}
+ * Reads a browser cookie by its key name.
+ * 
+ * @param {string} name - Name of the cookie (e.g. 'site-theme')
+ * @returns {string|null} - 'light', 'dark', or null if not found
  */
 function readCookieValue(name) {
   if (typeof document === 'undefined') return null;
@@ -51,8 +66,9 @@ function readCookieValue(name) {
 }
 
 /**
- * Determines whether user explicitly chose a theme previously.
- * @returns {boolean}
+ * Checks if the visitor has explicitly clicked the theme switcher in the past.
+ * 
+ * @returns {boolean} - True if a saved choice exists in cookies or localStorage
  */
 export function hasExplicitThemePreference() {
   try {
@@ -66,14 +82,19 @@ export function hasExplicitThemePreference() {
       }
     }
   } catch (e) {
-    // Ignore storage restrictions
+    // Ignore browser privacy/sandbox restrictions
   }
   return false;
 }
 
 /**
- * Retrieves persisted theme preference.
- * Priority: 1. Cookie 'site-theme' (or 'hil_theme') -> 2. localStorage -> 3. System prefers-color-scheme -> 4. 'light'.
+ * Determines which theme to load on startup.
+ * Priority hierarchy:
+ * 1. Saved Cookie ('site-theme') -> User's explicit past choice
+ * 2. Saved localStorage -> Backup copy of choice
+ * 3. Operating System preference -> Respects visitor's device mode
+ * 4. 'light' -> Safe final fallback
+ * 
  * @returns {'dark'|'light'}
  */
 export function getPersistedTheme() {
@@ -92,7 +113,7 @@ export function getPersistedTheme() {
       }
     }
   } catch (e) {
-    // Browser storage/cookie restriction fallback
+    // Browser storage restriction fallback
   }
 
   // 3. System preference fallback on first visit; default to 'light' if unavailable
@@ -100,42 +121,45 @@ export function getPersistedTheme() {
 }
 
 /**
- * Persists theme preference across cookie, localStorage, and DOM attribute.
+ * Saves the visitor's choice into cookies, localStorage, and updates the HTML attribute.
+ * 
  * @param {'dark'|'light'} theme
  */
 export function persistTheme(theme) {
   const validTheme = theme === 'light' ? 'light' : 'dark';
   try {
-    // 1. Save cookie (1 year expiration, SameSite=Lax, Secure if HTTPS, Path=/)
+    // 1. Save cookie (1 year expiration = 31,536,000 seconds, SameSite=Lax, Secure if HTTPS, Path=/)
     const isHttps = typeof window !== 'undefined' && window.location.protocol === 'https:';
     const secureFlag = isHttps ? '; Secure' : '';
     document.cookie = `${THEME_COOKIE_NAME}=${validTheme}; path=/; max-age=31536000; SameSite=Lax${secureFlag}`;
     // Also update legacy cookie for backwards compatibility
     document.cookie = `${LEGACY_COOKIE_NAME}=${validTheme}; path=/; max-age=31536000; SameSite=Lax${secureFlag}`;
 
-    // 2. Sync to localStorage
+    // 2. Sync to browser localStorage
     if (typeof localStorage !== 'undefined') {
       localStorage.setItem(THEME_STORAGE_KEY, validTheme);
       localStorage.setItem(LEGACY_STORAGE_KEY, validTheme);
     }
   } catch (e) {
-    // Silent fail if cookies or localStorage are disabled
+    // Silent fail if browser blocks storage
   }
 
-  // 3. Update DOM attribute for immediate CSS selector matching
+  // 3. Update HTML data-theme attribute for immediate CSS styling updates
   if (typeof document !== 'undefined') {
     document.documentElement.dataset.theme = validTheme;
   }
 }
 
 /**
- * Context Provider wrapping the component tree to supply active theme and toggles.
+ * The Context Provider component that wraps the React tree.
+ * Supplies the active theme and toggle functions to all child components.
  */
 export function ThemeProvider({ children }) {
+  // Read initial theme preference from cookies/system
   const [theme, setThemeState] = useState(() => getPersistedTheme());
   const [hasExplicit, setHasExplicit] = useState(() => hasExplicitThemePreference());
 
-  // Listen to OS scheme changes if user hasn't explicitly set a preference
+  // Listen for live OS theme changes if the visitor has NOT made an explicit choice yet
   useEffect(() => {
     if (hasExplicit || typeof window === 'undefined' || !window.matchMedia) return;
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
@@ -151,13 +175,14 @@ export function ThemeProvider({ children }) {
     }
   }, [hasExplicit]);
 
-  // Synchronize DOM whenever theme changes
+  // Synchronize HTML attribute whenever React state changes
   useEffect(() => {
     if (typeof document !== 'undefined') {
       document.documentElement.dataset.theme = theme;
     }
   }, [theme]);
 
+  // Helper function to switch between dark and light
   const toggleTheme = useCallback(() => {
     setThemeState((prev) => {
       const next = prev === 'dark' ? 'light' : 'dark';
@@ -167,6 +192,7 @@ export function ThemeProvider({ children }) {
     });
   }, []);
 
+  // Helper function to set an explicit theme
   const setTheme = useCallback((newTheme) => {
     const valid = newTheme === 'light' ? 'light' : 'dark';
     setThemeState(valid);
@@ -182,7 +208,8 @@ export function ThemeProvider({ children }) {
 }
 
 /**
- * Custom hook to consume active theme context.
+ * Custom hook: makes it simple for any component to access theme state.
+ * Usage in any component: `const { theme, toggleTheme } = useTheme();`
  */
 export function useTheme() {
   const context = useContext(ThemeContext);
@@ -191,3 +218,4 @@ export function useTheme() {
   }
   return context;
 }
+

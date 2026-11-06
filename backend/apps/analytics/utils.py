@@ -1,25 +1,35 @@
 """
-Analytics Utility Functions
+==============================================================================
+Analytics Helper Utilities (utils.py)
+==============================================================================
 
-Provides client parsing and data sanitization routines for:
-- User-Agent inspection (Device, Browser family, OS family).
-- External referrer classification (Search, Social, Campaign, Referral, Direct).
-- URL and query string sanitization (preventing sensitive credential logging).
-- Safe client IP resolution across standard reverse proxies (Cloudflare, Render, Nginx).
+WHAT IS THIS FILE?
+This file contains helper functions that clean, inspect, and classify data
+sent by visitors.
+
+KEY CAPABILITIES:
+1. `get_client_ip`: Safely discovers the visitor's real IP address, even behind
+   Cloudflare CDNs or reverse proxies.
+2. `parse_user_agent`: Figures out whether someone is using an iPhone, Mac, Windows PC,
+   Chrome, Safari, etc.
+3. `classify_referrer`: Determines if someone arrived from Google, LinkedIn, GitHub, or direct entry.
+4. `sanitize_url`: Strips sensitive tokens or passwords from web addresses so they never get saved.
 """
 import re
 from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 
-
+# List of sensitive query parameter names that must NEVER be saved in database logs
 SENSITIVE_PARAM_NAMES = {
     'token', 'key', 'auth', 'pass', 'password', 'secret', 'session',
     'access_token', 'id_token', 'refresh_token', 'api_key', 'apikey'
 }
 
+# Recognized search engine domain names
 SEARCH_ENGINES = [
     'google', 'bing', 'duckduckgo', 'yahoo', 'baidu', 'yandex', 'ecosia', 'ask'
 ]
 
+# Recognized social network domain names
 SOCIAL_NETWORKS = [
     'linkedin', 'github', 'twitter', 't.co', 'x.com', 'facebook', 'instagram',
     'reddit', 'youtube', 'threads', 'tiktok', 'discord'
@@ -28,7 +38,8 @@ SOCIAL_NETWORKS = [
 
 def sanitize_url(raw_url: str, max_length: int = 500) -> str:
     """
-    Strips sensitive authentication / credential parameters from URLs.
+    Cleans a web address by stripping out any sensitive parameters (like ?token=xyz)
+    before it can be stored in the database.
     """
     if not raw_url or not isinstance(raw_url, str):
         return ''
@@ -37,8 +48,10 @@ def sanitize_url(raw_url: str, max_length: int = 500) -> str:
         if not parsed.netloc and not parsed.path:
             return raw_url.strip()[:max_length]
         
+        # If the URL contains query parameters (?key=value), inspect and clean them
         if parsed.query:
             qs = parse_qs(parsed.query, keep_blank_values=True)
+            # Remove any parameters matching our sensitive blacklist
             cleaned_qs = {k: v for k, v in qs.items() if k.lower() not in SENSITIVE_PARAM_NAMES}
             new_query = urlencode(cleaned_qs, doseq=True)
             cleaned_url = urlunparse((
@@ -57,7 +70,7 @@ def sanitize_url(raw_url: str, max_length: int = 500) -> str:
 
 def sanitize_path(raw_path: str, max_length: int = 255) -> str:
     """
-    Sanitizes an internal SPA route or path.
+    Cleans an internal webpage route (e.g. ensure '/projects' starts with a slash).
     """
     if not raw_path or not isinstance(raw_path, str):
         return '/'
@@ -69,8 +82,14 @@ def sanitize_path(raw_path: str, max_length: int = 255) -> str:
 
 def classify_referrer(raw_referrer: str, current_host: str = '') -> tuple[str, str]:
     """
-    Classifies a raw referrer URL into (referrer_source, clean_referrer_url).
-    Source options: 'direct', 'search', 'social', 'campaign', 'referral'.
+    Analyzes where a visitor came from (the "referrer" website).
+    
+    Returns a tuple: (category, clean_url)
+    Categories:
+    - 'direct': Typed the URL directly or clicked a bookmark.
+    - 'search': Came from Google, Bing, DuckDuckGo, etc.
+    - 'social': Came from LinkedIn, GitHub, Twitter, etc.
+    - 'referral': Came from another external blog or website.
     """
     if not raw_referrer or not isinstance(raw_referrer, str):
         return 'direct', ''
@@ -82,7 +101,7 @@ def classify_referrer(raw_referrer: str, current_host: str = '') -> tuple[str, s
         if not hostname:
             return 'direct', clean_ref
         
-        # Check if internal navigation
+        # If visitor moved within our own site, count it as direct
         if current_host and (hostname == current_host.lower() or hostname.endswith('.' + current_host.lower())):
             return 'direct', clean_ref
         if 'hilpatel.site' in hostname or 'localhost' in hostname:
@@ -103,7 +122,10 @@ def classify_referrer(raw_referrer: str, current_host: str = '') -> tuple[str, s
 
 def parse_user_agent(user_agent: str) -> dict:
     """
-    Extracts device category, browser family, and OS family from User-Agent string.
+    Inspects the browser's User-Agent string to determine:
+    1. Device type: 'desktop', 'tablet', or 'mobile'
+    2. Operating system: 'macOS', 'iOS', 'Windows', 'Android', 'Linux'
+    3. Browser: 'Chrome', 'Safari', 'Firefox', 'Edge', 'Opera'
     """
     ua = (user_agent or '').lower()
     
@@ -153,7 +175,13 @@ def parse_user_agent(user_agent: str) -> dict:
 
 def get_client_ip(request) -> str:
     """
-    Safely extracts client IP address handling reverse proxies and CDN headers.
+    Retrieves the genuine public IP address of the user.
+    
+    When deployed behind Cloudflare or Render, requests pass through proxy servers.
+    The real user IP is forwarded in special HTTP headers:
+    1. `CF-Connecting-IP`: Provided by Cloudflare (most trustworthy).
+    2. `X-Forwarded-For`: Provided by standard proxies/load balancers.
+    3. `REMOTE_ADDR`: Fallback for local development.
     """
     # Cloudflare header takes highest precedence
     cf_ip = request.META.get('HTTP_CF_CONNECTING_IP')

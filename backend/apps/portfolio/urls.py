@@ -1,3 +1,19 @@
+"""
+==============================================================================
+Portfolio Content URL Routes (apps/portfolio/urls.py)
+==============================================================================
+
+WHAT IS THIS FILE?
+Maps URL endpoints to views for portfolio content:
+- `/api/v1/ticker/`                   -> Marquee keywords
+- `/api/v1/about-stats/`              -> About section highlight cards
+- `/api/v1/skills/`                   -> Grouped technical skill pills
+- `/api/v1/education/`                -> Chronological education history
+- `/api/v1/certifications/`           -> Filterable & searchable credentials
+- `/api/v1/certification-categories/` -> Category filters
+- `/api/v1/achievements/`             -> Key milestone outcomes
+"""
+
 from django.urls import path
 from .views import (
     TickerListView,
@@ -18,4 +34,5 @@ urlpatterns = [
     path('certification-categories/', CertificationCategoryListView.as_view(), name='certification-categories-list'),
     path('achievements/', AchievementListView.as_view(), name='achievements-list'),
 ]
+
 

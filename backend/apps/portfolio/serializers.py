@@ -1,3 +1,13 @@
+"""
+==============================================================================
+Portfolio Content Serializers (apps/portfolio/serializers.py)
+==============================================================================
+
+WHAT IS THIS FILE?
+Translates portfolio database models into clean JSON formats that match
+the exact data structures expected by the React frontend components.
+"""
+
 from rest_framework import serializers
 from .models import (
     TickerItem,
@@ -11,24 +21,32 @@ from .models import (
 )
 
 class TickerItemSerializer(serializers.ModelSerializer):
+    """Translates ticker keywords into JSON."""
     class Meta:
         model = TickerItem
         fields = ['id', 'text', 'display_order']
 
 
 class AboutStatSerializer(serializers.ModelSerializer):
+    """Translates About section highlight cards into JSON."""
     class Meta:
         model = AboutStat
         fields = ['id', 'number', 'label', 'detail', 'is_accent', 'icon_name', 'display_order']
 
 
 class SkillItemSerializer(serializers.ModelSerializer):
+    """Translates an individual skill tool into JSON."""
     class Meta:
         model = Skill
         fields = ['id', 'name', 'proficiency_level', 'icon_name', 'display_order']
 
 
 class SkillCategorySerializer(serializers.ModelSerializer):
+    """
+    Translates a skill category into JSON.
+    Notice: get_items() extracts the list of tool names (e.g. ['Python', 'SQL'])
+    so the React frontend can directly loop over string pills.
+    """
     items = serializers.SerializerMethodField()
 
     class Meta:
@@ -36,13 +54,12 @@ class SkillCategorySerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'display_order', 'items']
 
     def get_items(self, obj):
-        # Return names list for 100% backward compatibility with original main(1).jsx
-        # and support full objects if needed
         visible_skills = obj.skills.filter(is_visible=True).order_by('display_order', 'id')
         return [skill.name for skill in visible_skills]
 
 
 class EducationSerializer(serializers.ModelSerializer):
+    """Translates academic credentials into JSON."""
     class Meta:
         model = Education
         fields = [
@@ -58,12 +75,17 @@ class EducationSerializer(serializers.ModelSerializer):
 
 
 class CertificationCategorySerializer(serializers.ModelSerializer):
+    """Translates certification category filters into JSON."""
     class Meta:
         model = CertificationCategory
         fields = ['id', 'name', 'display_order']
 
 
 class CertificationSerializer(serializers.ModelSerializer):
+    """
+    Translates certifications into JSON.
+    Flattens category.name into 'category_name' and builds the full URL for uploaded certificate documents.
+    """
     category_name = serializers.CharField(source='category.name', read_only=True)
     certificate_file_url = serializers.SerializerMethodField()
 
@@ -90,6 +112,7 @@ class CertificationSerializer(serializers.ModelSerializer):
 
 
 class AchievementSerializer(serializers.ModelSerializer):
+    """Translates milestone outcomes into JSON."""
     class Meta:
         model = Achievement
         fields = [

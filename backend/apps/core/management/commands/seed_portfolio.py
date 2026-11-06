@@ -1,3 +1,30 @@
+"""
+==============================================================================
+Portfolio Database Seeding Command (seed_portfolio.py)
+==============================================================================
+
+WHAT IS THIS COMMAND?
+When setting up the website on a new computer or deploying to Neon PostgreSQL
+for the first time, the database tables start out completely empty.
+
+WHAT DOES THIS COMMAND DO?
+Running `python manage.py seed_portfolio` populates the database with Hil Patel's
+complete, real-world portfolio information:
+1. Site Settings (Headlines, Bio, Tagline, Contact availability)
+2. Design Settings (Theme colors, font families, animation flags)
+3. Navigation Links (About, Projects, Skills, Education, Certifications)
+4. Key Metrics and Marquee Ticker keywords
+5. About Me statistics cards
+6. Technical skill categories and tool pills
+7. Education timeline entries
+8. Professional certifications
+9. Featured projects, category tags, and highlight achievements
+
+ATOMIC TRANSACTIONS:
+The entire script is wrapped in `@transaction.atomic`. That means if any error occurs
+halfway through, the entire database rolls back safely to avoid corrupted or partial records.
+"""
+
 from django.core.management.base import BaseCommand
 from django.db import transaction
 from apps.site_settings.models import SiteSettings, DesignSettings, NavigationItem, SectionConfig, HeroMetric

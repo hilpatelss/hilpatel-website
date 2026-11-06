@@ -1,3 +1,17 @@
+"""
+==============================================================================
+Site Settings URL Routes (apps/site_settings/urls.py)
+==============================================================================
+
+WHAT IS THIS FILE?
+Routes requests coming to `/api/v1/site-settings/...` to the appropriate view:
+- `/`           -> General site settings (owner name, contact details, resume URL)
+- `/design/`    -> Visual theme colors (Apple dark & light palettes)
+- `/navigation/`-> Navigation menu links
+- `/sections/`  -> Section display visibility & custom titles
+- `/bootstrap/` -> Unified payload containing everything for instant page load
+"""
+
 from django.urls import path
 from .views import (
     SiteSettingsView,
@@ -14,4 +28,5 @@ urlpatterns = [
     path('sections/', SectionConfigListView.as_view(), name='sections-list'),
     path('bootstrap/', BootstrapDataView.as_view(), name='bootstrap-data'),
 ]
+
 

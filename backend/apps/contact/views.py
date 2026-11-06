@@ -1,3 +1,20 @@
+"""
+==============================================================================
+Contact Submission API View (apps/contact/views.py)
+==============================================================================
+
+WHAT IS THIS FILE?
+Handles incoming contact form submissions from the React frontend.
+
+SECURITY & RESILIENCE FEATURES:
+1. Rate Limiting (`throttle_scope = 'contact'`): Prevents spam bots from hammering the form.
+2. IP Extraction (`get_client_ip`): Reads the real visitor IP through Cloudflare headers.
+3. Master Toggle: Respects `site_settings.contact_enabled` (returns 503 if paused).
+4. Safe Email Dispatch: Attempts to email Hil Patel immediately when a message arrives.
+   If the email fails (e.g. SMTP server timeout), it fails silently so the user's
+   message is still safely saved in the database!
+"""
+
 import logging
 from rest_framework import status
 from rest_framework.views import APIView
@@ -19,13 +36,17 @@ def get_client_ip(request):
     return request.META.get('REMOTE_ADDR')
 
 class ContactSubmissionView(APIView):
+    """
+    Receives contact form submissions.
+    Validates name, email, message, and checks the honeypot anti-spam trap.
+    """
     permission_classes = [AllowAny]
     authentication_classes = []
     throttle_classes = [ScopedRateThrottle]
-    throttle_scope = 'contact'
+    throttle_scope = 'contact'  # Throttled according to settings.REST_FRAMEWORK rate limits
 
     def post(self, request, *args, **kwargs):
-        # Check if contact is enabled in SiteSettings
+        # 1. Check if contact form is paused in SiteSettings
         site_settings = SiteSettings.load()
         if not site_settings.contact_enabled:
             return Response(
@@ -33,6 +54,7 @@ class ContactSubmissionView(APIView):
                 status=status.HTTP_503_SERVICE_UNAVAILABLE
             )
 
+        # 2. Validate incoming JSON data
         serializer = ContactSubmissionSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(
@@ -43,10 +65,11 @@ class ContactSubmissionView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+        # 3. Collect client network metadata
         ip = get_client_ip(request)
         user_agent = request.META.get('HTTP_USER_AGENT', '')[:300]
 
-        # Save valid submission
+        # 4. Save valid submission to the database
         contact_message = serializer.save(
             ip_address=ip,
             user_agent=user_agent,
@@ -54,7 +77,7 @@ class ContactSubmissionView(APIView):
             status='new'
         )
 
-        # Dispatch notification email safely to administrator
+        # 5. Dispatch notification email safely to administrator
         try:
             admin_email = getattr(settings, 'CONTACT_NOTIFICATION_EMAIL', 'hilpatelss@gmail.com')
             from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@hilpatel.com')
@@ -72,12 +95,12 @@ class ContactSubmissionView(APIView):
                 message=email_body,
                 from_email=from_email,
                 recipient_list=[admin_email],
-                fail_silently=True,
+                fail_silently=True,  # Ensures client receives success even if mail server fails
             )
         except Exception as e:
-            # Catch email delivery errors so client request succeeds and message is preserved
             logger.warning("Failed to dispatch contact notification email: %s", str(e))
 
+        # 6. Return friendly success confirmation
         return Response(
             {
                 "status": "success",
@@ -86,4 +109,5 @@ class ContactSubmissionView(APIView):
             },
             status=status.HTTP_201_CREATED
         )
+
 

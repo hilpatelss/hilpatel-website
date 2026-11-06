@@ -1,3 +1,18 @@
+"""
+==============================================================================
+Contact Message Django Admin Interface (apps/contact/admin.py)
+==============================================================================
+
+WHAT IS THIS FILE?
+Customizes how received contact messages appear in the Django Admin.
+
+SPECIAL FEATURES:
+1. Audit Integrity: Sender fields (name, email, message, IP) are marked read-only
+   so nobody can accidentally alter an inquiry.
+2. Status Badges: Visual colored status tags (Green for New, Yellow for In Progress, Red for Spam).
+3. Bulk Actions: Select multiple messages with checkboxes to mark them Read, Responded, or Spam with one click!
+"""
+
 from django.contrib import admin
 from django.utils.html import format_html
 from .models import ContactMessage
@@ -7,6 +22,7 @@ class ContactMessageAdmin(admin.ModelAdmin):
     list_display = ('created_at', 'name', 'email', 'status_badge', 'is_read')
     list_filter = ('status', 'is_read', 'created_at')
     search_fields = ('name', 'email', 'subject', 'message', 'admin_notes')
+    # Prevent editing what the sender wrote
     readonly_fields = ('created_at', 'updated_at', 'name', 'email', 'subject', 'message', 'ip_address', 'user_agent')
     actions = ['mark_as_read', 'mark_as_in_progress', 'mark_as_responded', 'mark_as_spam']
 
@@ -35,6 +51,7 @@ class ContactMessageAdmin(admin.ModelAdmin):
     )
 
     def status_badge(self, obj):
+        """Renders a colorful status pill badge in the admin table."""
         colors = {
             'new': '#c7ff5e',
             'in_progress': '#e9c36c',
@@ -68,6 +85,7 @@ class ContactMessageAdmin(admin.ModelAdmin):
         queryset.update(status='spam')
 
     def has_add_permission(self, request):
-        # Submissions should come from frontend contact API
+        # Contact inquiries must come through the actual website API, not created manually in admin
         return False
+
 

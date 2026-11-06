@@ -1,3 +1,19 @@
+"""
+==============================================================================
+Automated Superuser Creation Command (create_admin.py)
+==============================================================================
+
+WHAT IS THIS COMMAND?
+When deploying to cloud platforms like Render, there is no interactive keyboard
+to type in `python manage.py createsuperuser` and answer username/password prompts.
+
+HOW DOES IT WORK?
+This command (`python manage.py create_admin`) reads administrator credentials
+from environment variables (`ADMIN_USERNAME`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`)
+and creates the admin account automatically if `CREATE_ADMIN_ON_DEPLOY=true`.
+If the admin already exists, it safely does nothing.
+"""
+
 import os
 
 from django.core.management.base import BaseCommand, CommandError

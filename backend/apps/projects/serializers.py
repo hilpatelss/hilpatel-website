@@ -1,25 +1,39 @@
+"""
+==============================================================================
+Project Serializers (apps/projects/serializers.py)
+==============================================================================
+
+WHAT IS THIS FILE?
+Translates project database models into JSON structures matching the
+frontend's `<ProjectsSection />` and `<DynamicArtGraphic />` expectations.
+"""
+
 from rest_framework import serializers
 from .models import ProjectCategory, TechnologyTag, Project, ProjectHighlight, ProjectImage
 
 class TechnologyTagSerializer(serializers.ModelSerializer):
+    """Translates technology tags into JSON."""
     class Meta:
         model = TechnologyTag
         fields = ['id', 'name', 'slug']
 
 
 class ProjectCategorySerializer(serializers.ModelSerializer):
+    """Translates project categories into JSON."""
     class Meta:
         model = ProjectCategory
         fields = ['id', 'name', 'slug', 'display_order']
 
 
 class ProjectHighlightSerializer(serializers.ModelSerializer):
+    """Translates bullet point achievements into JSON."""
     class Meta:
         model = ProjectHighlight
         fields = ['id', 'text', 'display_order']
 
 
 class ProjectImageSerializer(serializers.ModelSerializer):
+    """Translates gallery screenshot records and builds full image URLs."""
     image_url = serializers.SerializerMethodField()
 
     class Meta:
@@ -32,6 +46,10 @@ class ProjectImageSerializer(serializers.ModelSerializer):
 
 
 class ProjectListSerializer(serializers.ModelSerializer):
+    """
+    Main serializer for project cards displayed on the portfolio homepage.
+    Flattens tags and highlights into simple string arrays so React can render them directly.
+    """
     category_name = serializers.CharField(source='category.name', read_only=True)
     category_slug = serializers.CharField(source='category.slug', read_only=True)
     tags = serializers.SlugRelatedField(many=True, read_only=True, slug_field='name')
@@ -62,9 +80,11 @@ class ProjectListSerializer(serializers.ModelSerializer):
         ]
 
     def get_highlights(self, obj):
+        """Returns ordered list of bullet point strings."""
         return [h.text for h in obj.highlights.all().order_by('display_order', 'id')]
 
     def get_thumbnail_url(self, obj):
+        """Builds full public URL for uploaded project thumbnail image."""
         if obj.thumbnail:
             request = self.context.get('request')
             return request.build_absolute_uri(obj.thumbnail.url) if request else obj.thumbnail.url
@@ -72,6 +92,7 @@ class ProjectListSerializer(serializers.ModelSerializer):
 
 
 class ProjectDetailSerializer(ProjectListSerializer):
+    """Extends the card serializer to include full case study text and screenshots."""
     gallery_images = ProjectImageSerializer(many=True, read_only=True)
 
     class Meta(ProjectListSerializer.Meta):
@@ -82,4 +103,5 @@ class ProjectDetailSerializer(ProjectListSerializer):
             'completion_date',
             'gallery_images',
         ]
+
 

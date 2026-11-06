@@ -1,10 +1,22 @@
 /**
- * About Section Component
+ * ==============================================================================
+ * About Section Component (AboutSection.jsx)
+ * ==============================================================================
  *
- * Presents:
- * - Professional background narrative and philosophy.
- * - Social connection links (LinkedIn, GitHub, Email).
- * - High-level summary statistic cards (projects, certifications, tool categories).
+ * WHAT IS THIS SECTION?
+ * This section tells the visitor who Hil Patel is in greater depth.
+ * It explains his analytical philosophy: "Curious by nature. Analytical by design."
+ *
+ * WHAT DOES IT DISPLAY?
+ * 1. Narrative Bio: Explains his focus on data cleaning, exploratory analysis,
+ *    and transforming messy datasets into practical business decisions.
+ * 2. Social Action Links: Direct links to LinkedIn profile, GitHub repository,
+ *    and a mailto link to start an email conversation.
+ * 3. Quick Stats Grid: 4 interactive summary cards highlighting key milestones:
+ *    - Featured projects count (e.g. 03)
+ *    - Tool categories (e.g. 05+)
+ *    - Certifications count
+ *    - An accented card showcasing his core mission with an icon.
  */
 import React from 'react';
 import {
@@ -28,10 +40,12 @@ import {
 } from 'lucide-react';
 
 export function AboutSection({ site, stats, sectionConfig }) {
+  // Configurable headings from Django CMS
   const indexLabel = sectionConfig?.index_label || "01 / ABOUT";
   const titleLine1 = sectionConfig?.title_line1 || "Curious by nature.";
   const titleLine2 = sectionConfig?.title_line2 || "Analytical by design.";
 
+  // Helper function to pick the right Lucide icon for cards that display a symbol instead of a number
   const renderStatIcon = (iconName) => {
     switch (iconName?.toLowerCase()) {
       case 'target':
@@ -67,68 +81,74 @@ export function AboutSection({ site, stats, sectionConfig }) {
   return (
     <section className="section-block about-section" id="about">
       <div className="section-wrap">
+        {/* Section Index & Title */}
         <div className="section-heading reveal">
-        <span className="section-index">{indexLabel}</span>
-        <h2>
-          {titleLine1}
-          <br />
-          <span>{titleLine2}</span>
-        </h2>
-      </div>
+          <span className="section-index">{indexLabel}</span>
+          <h2>
+            {titleLine1}
+            <br />
+            <span>{titleLine2}</span>
+          </h2>
+        </div>
 
-      <div className="about-layout">
-        <div className="about-main reveal">
-          <p className="large-copy">{site?.about_large_copy}</p>
-          <p className="body-copy">{site?.about_body_copy}</p>
+        <div className="about-layout">
+          {/* Left Column: Bio Narrative & Direct Profile Links */}
+          <div className="about-main reveal">
+            <p className="large-copy">{site?.about_large_copy}</p>
+            <p className="body-copy">{site?.about_body_copy}</p>
 
-          <div className="about-links">
-            {site?.linkedin_url && (
-              <a href={site.linkedin_url} target="_blank" rel="noreferrer">
-                <Linkedin size={17} /> LinkedIn <ExternalLink size={13} />
-              </a>
-            )}
-            {site?.github_url && (
-              <a href={site.github_url} target="_blank" rel="noreferrer">
-                <Github size={17} /> GitHub <ExternalLink size={13} />
-              </a>
-            )}
-            {site?.email && (
-              <a href={`mailto:${site.email}`}>
-                <Mail size={17} /> Email <ArrowRight size={14} />
-              </a>
-            )}
+            <div className="about-links">
+              {site?.linkedin_url && (
+                <a href={site.linkedin_url} target="_blank" rel="noreferrer">
+                  <Linkedin size={17} /> LinkedIn <ExternalLink size={13} />
+                </a>
+              )}
+              {site?.github_url && (
+                <a href={site.github_url} target="_blank" rel="noreferrer">
+                  <Github size={17} /> GitHub <ExternalLink size={13} />
+                </a>
+              )}
+              {site?.email && (
+                <a href={`mailto:${site.email}`}>
+                  <Mail size={17} /> Email <ArrowRight size={14} />
+                </a>
+              )}
+            </div>
+          </div>
+
+          {/* Right Column: Grid of 4 Stat / Highlight Cards */}
+          <div className="stats-grid reveal">
+            {stats?.map((stat, idx) => {
+              const isAccent = stat.is_accent;
+              const hasValidNumber = Boolean(stat.number && stat.number !== '0' && stat.number.trim() !== '');
+
+              return (
+                <div
+                  key={stat.id || idx}
+                  className={`stat-card ${isAccent ? 'stat-card-accent' : ''}`}
+                >
+                  {/* If the stat has a number (like "03" or "05+"), show big text */}
+                  {hasValidNumber ? (
+                    <span className="stat-number">
+                      {stat.number.replace('+', '')}
+                      {stat.number.includes('+') && <span className="stat-plus">+</span>}
+                    </span>
+                  ) : (
+                    /* Otherwise, show a nice analytics icon */
+                    <span className="stat-symbol">
+                      {renderStatIcon(stat.icon_name)}
+                    </span>
+                  )}
+                  <span className="stat-label">{stat.label}</span>
+                  <span className="stat-detail">{stat.detail}</span>
+                </div>
+              );
+            })}
           </div>
         </div>
-
-        <div className="stats-grid reveal">
-          {stats?.map((stat, idx) => {
-            const isAccent = stat.is_accent;
-            const hasValidNumber = Boolean(stat.number && stat.number !== '0' && stat.number.trim() !== '');
-
-            return (
-              <div
-                key={stat.id || idx}
-                className={`stat-card ${isAccent ? 'stat-card-accent' : ''}`}
-              >
-                {hasValidNumber ? (
-                  <span className="stat-number">
-                    {stat.number.replace('+', '')}
-                    {stat.number.includes('+') && <span className="stat-plus">+</span>}
-                  </span>
-                ) : (
-                  <span className="stat-symbol">
-                    {renderStatIcon(stat.icon_name)}
-                  </span>
-                )}
-                <span className="stat-label">{stat.label}</span>
-                <span className="stat-detail">{stat.detail}</span>
-              </div>
-            );
-          })}
-        </div>
-      </div>
       </div>
     </section>
   );
 }
+
 

@@ -1,14 +1,31 @@
+"""
+==============================================================================
+Project Django Admin Interface (apps/projects/admin.py)
+==============================================================================
+
+WHAT IS THIS FILE?
+Configures the Django Admin screens for projects, categories, and tags.
+
+SPECIAL ADMIN FEATURES:
+- `ProjectHighlightInline`: Allows adding achievement bullet points directly inside the project form.
+- `prepopulated_fields`: Automatically generates the URL slug as you type the title.
+- `filter_horizontal`: Provides an easy dual-box picker for technology tags (Python, SQL, etc.).
+- `thumbnail_preview`: Renders a live image thumbnail right in the admin table.
+"""
+
 from django.contrib import admin
 from django.utils.html import format_html
 from .models import ProjectCategory, TechnologyTag, Project, ProjectHighlight, ProjectImage
 
 class ProjectHighlightInline(admin.TabularInline):
+    """Inline editor for project bullet points with checkmarks."""
     model = ProjectHighlight
     extra = 3
     fields = ('display_order', 'text')
 
 
 class ProjectImageInline(admin.TabularInline):
+    """Inline editor for project gallery screenshots."""
     model = ProjectImage
     extra = 1
     fields = ('display_order', 'image', 'caption')
@@ -16,6 +33,7 @@ class ProjectImageInline(admin.TabularInline):
 
 @admin.register(ProjectCategory)
 class ProjectCategoryAdmin(admin.ModelAdmin):
+    """Admin interface for project categories."""
     list_display = ('name', 'slug', 'display_order', 'is_visible')
     list_editable = ('display_order', 'is_visible')
     list_display_links = ('name',)
@@ -24,6 +42,7 @@ class ProjectCategoryAdmin(admin.ModelAdmin):
 
 @admin.register(TechnologyTag)
 class TechnologyTagAdmin(admin.ModelAdmin):
+    """Admin interface for technology tags."""
     list_display = ('name', 'slug')
     list_display_links = ('name',)
     prepopulated_fields = {'slug': ('name',)}
@@ -32,6 +51,7 @@ class TechnologyTagAdmin(admin.ModelAdmin):
 
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
+    """Main admin interface for managing portfolio project case studies."""
     list_display = (
         'title',
         'number',
@@ -81,8 +101,10 @@ class ProjectAdmin(admin.ModelAdmin):
     )
 
     def thumbnail_preview(self, obj):
+        """Displays a small live preview image in the admin table."""
         if obj.thumbnail:
             return format_html('<img src="{}" style="height: 35px; width: 50px; object-fit: cover; border-radius: 3px;" />', obj.thumbnail.url)
         return format_html('<span style="color: #9299a8;">{}</span>', obj.get_custom_art_type_display()[:15])
     thumbnail_preview.short_description = "Visual Preview"
+
 

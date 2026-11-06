@@ -1,9 +1,22 @@
+"""
+==============================================================================
+Contact Submission Serializer (apps/contact/serializers.py)
+==============================================================================
+
+WHAT IS THIS FILE?
+Validates the contact form inputs sent by the website visitor:
+1. Name validation: Strips whitespace and enforces 2 to 120 characters.
+2. Email validation: Checks that the email is a valid web email address.
+3. Message validation: Enforces at least 10 characters to prevent empty pings.
+4. Honeypot check: If the hidden `website` field has ANY content, marks it as spam!
+"""
+
 from rest_framework import serializers
 from django.conf import settings
 from .models import ContactMessage
 
 class ContactSubmissionSerializer(serializers.ModelSerializer):
-    # Honeypot field: bots usually fill hidden form inputs
+    # Honeypot field: invisible to human users, but filled by automated spam bots
     website = serializers.CharField(
         required=False,
         allow_blank=True,
@@ -33,9 +46,10 @@ class ContactSubmissionSerializer(serializers.ModelSerializer):
         return trimmed
 
     def validate(self, attrs):
-        # Honeypot validation
+        # Honeypot anti-spam check: humans leave this blank; bots fill it out
         honeypot = attrs.pop('website', '')
         if honeypot:
             raise serializers.ValidationError({"spam": "Spam detected."})
         return attrs
+
 

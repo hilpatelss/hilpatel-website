@@ -1,11 +1,22 @@
 /**
- * Contact Section Component
+ * ==============================================================================
+ * Contact & Inquiry Section (ContactSection.jsx)
+ * ==============================================================================
  *
- * Provides:
- * - Professional contact invitation pitch and availability status.
- * - Direct email link with copy/click support.
- * - Social connection badges (LinkedIn, GitHub).
- * - Interactive inquiry form with honeypot spam protection, validation, and submission states.
+ * WHAT IS THIS SECTION?
+ * This is where visitors, recruiters, and hiring managers can reach out to Hil Patel.
+ *
+ * WHAT FEATURES DOES IT HAVE?
+ * 1. Direct Contact Details (Left Column):
+ *    - Clickable email link (`hilpatelss@gmail.com`)
+ *    - LinkedIn and GitHub profile links
+ *    - Career status badge ("Open to entry-level roles")
+ * 2. Interactive Message Form (Right Column):
+ *    - Form fields for Name, Email, and Message
+ *    - Invisible "Honeypot" anti-spam trap (catches automated spam bots without
+ *      frustrating humans with puzzle CAPTCHAs!)
+ *    - Live submission states: disables the button while sending, and displays
+ *      friendly confirmation or error feedback.
  */
 import React, { useState } from 'react';
 import {
@@ -19,24 +30,34 @@ import {
 import { api } from '../services/api';
 
 export function ContactSection({ site, sectionConfig }) {
+  // Form input field state (name, email, message, and the secret honeypot 'website')
   const [form, setForm] = useState({ name: '', email: '', message: '', website: '' });
-  const [formState, setFormState] = useState('idle'); // idle | sending | success | error
+  // Form submission status: 'idle' | 'sending' | 'success' | 'error'
+  const [formState, setFormState] = useState('idle');
+  // Error message text if submission fails
   const [errorMessage, setErrorMessage] = useState('');
 
+  // Configurable headings from Django CMS
   const indexLabel = sectionConfig?.index_label || "07 / CONTACT";
   const titleLine1 = sectionConfig?.title_line1 || "Have a role or";
   const titleLine2 = sectionConfig?.title_line2 || "project in mind";
 
+  /**
+   * Handles contact form submission when the user clicks "Send message".
+   */
   async function handleSubmit(e) {
-    e.preventDefault();
+    e.preventDefault(); // Prevents the browser from reloading the page
     setFormState('sending');
     setErrorMessage('');
 
     try {
+      // Send the inquiry to the Django backend
       await api.submitContact(form);
+      // Show success message and clear the form fields
       setFormState('success');
       setForm({ name: '', email: '', message: '', website: '' });
     } catch (err) {
+      // If an error occurred, extract any validation details sent by Django
       setFormState('error');
       if (err.data?.details) {
         const detailsList = Object.entries(err.data.details)
@@ -54,6 +75,7 @@ export function ContactSection({ site, sectionConfig }) {
   return (
     <section className="contact-section" id="contact">
       <div className="section-wrap contact-layout">
+        {/* Left Column: Direct email & Social profile links */}
         <div className="contact-copy reveal">
           <span className="section-index">{indexLabel}</span>
           <h2>
@@ -88,13 +110,19 @@ export function ContactSection({ site, sectionConfig }) {
           </div>
         </div>
 
+        {/* Right Column: Contact Inquiry Form */}
         <form className="contact-form reveal" onSubmit={handleSubmit}>
           <div className="form-title">
             <span>LET'S START A CONVERSATION</span>
             <Send size={18} />
           </div>
 
-          {/* Honeypot field for anti-spam (hidden from real users) */}
+          {/* 
+            ANTI-SPAM HONEYPOT TRAP:
+            This input is hidden from human visitors with display:none.
+            Automated spam bots fill in every field they see. If this field contains
+            any value when received by Django, the server knows it's a bot and drops it!
+          */}
           <div style={{ display: 'none' }} aria-hidden="true">
             <label htmlFor="hp_website">Leave this field blank</label>
             <input
@@ -107,6 +135,7 @@ export function ContactSection({ site, sectionConfig }) {
             />
           </div>
 
+          {/* Name Field */}
           <label>
             Your name
             <input
@@ -120,6 +149,7 @@ export function ContactSection({ site, sectionConfig }) {
             />
           </label>
 
+          {/* Email Field */}
           <label>
             Email address
             <input
@@ -132,6 +162,7 @@ export function ContactSection({ site, sectionConfig }) {
             />
           </label>
 
+          {/* Message Textarea */}
           <label>
             Message
             <textarea
@@ -146,6 +177,7 @@ export function ContactSection({ site, sectionConfig }) {
             />
           </label>
 
+          {/* Submit Button */}
           <button
             className="button button-primary form-submit"
             type="submit"
@@ -155,12 +187,14 @@ export function ContactSection({ site, sectionConfig }) {
             <ArrowRight size={16} />
           </button>
 
+          {/* Confirmation Alert on Success */}
           {formState === 'success' && (
             <p className="form-feedback success">
               Message sent successfully! Thanks for reaching out.
             </p>
           )}
 
+          {/* Error Notice on Failure */}
           {formState === 'error' && (
             <p className="form-feedback error">
               {errorMessage || (
@@ -178,4 +212,5 @@ export function ContactSection({ site, sectionConfig }) {
     </section>
   );
 }
+
 

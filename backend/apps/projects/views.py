@@ -1,3 +1,16 @@
+"""
+==============================================================================
+Project API Views (apps/projects/views.py)
+==============================================================================
+
+WHAT IS THIS FILE?
+Provides read-only JSON API endpoints for projects:
+1. `ProjectListView`: Returns all published projects with optional filtering (category, tag, search).
+2. `ProjectDetailView`: Returns full details for a single project looked up by its URL slug.
+3. `ProjectCategoryListView`: Returns project category filters.
+4. `TechnologyTagListView`: Returns all available technology tags.
+"""
+
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.permissions import AllowAny
 from django.db.models import Q
@@ -10,6 +23,11 @@ from .serializers import (
 )
 
 class ProjectListView(ListAPIView):
+    """
+    Returns the list of published projects.
+    Optimized with select_related & prefetch_related to load all tags & bullet points in one go.
+    Supports query parameters: ?category=..., ?tag=..., ?featured=true, ?search=...
+    """
     permission_classes = [AllowAny]
     serializer_class = ProjectListSerializer
     pagination_class = None
@@ -42,6 +60,7 @@ class ProjectListView(ListAPIView):
 
 
 class ProjectDetailView(RetrieveAPIView):
+    """Returns complete details and screenshots for a single project by slug."""
     permission_classes = [AllowAny]
     serializer_class = ProjectDetailSerializer
     lookup_field = 'slug'
@@ -53,6 +72,7 @@ class ProjectDetailView(RetrieveAPIView):
 
 
 class ProjectCategoryListView(ListAPIView):
+    """Returns project categories."""
     permission_classes = [AllowAny]
     serializer_class = ProjectCategorySerializer
     queryset = ProjectCategory.objects.filter(is_visible=True)
@@ -60,8 +80,10 @@ class ProjectCategoryListView(ListAPIView):
 
 
 class TechnologyTagListView(ListAPIView):
+    """Returns all technology tags."""
     permission_classes = [AllowAny]
     serializer_class = TechnologyTagSerializer
     queryset = TechnologyTag.objects.all()
     pagination_class = None
+
 

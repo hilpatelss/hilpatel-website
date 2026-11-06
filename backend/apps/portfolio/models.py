@@ -1,10 +1,28 @@
+"""
+==============================================================================
+Portfolio Content Models (apps/portfolio/models.py)
+==============================================================================
+
+WHAT IS THIS FILE?
+This file defines database models for the core content of Hil Patel's portfolio:
+skills, education timeline, certifications, marquee ticker, and milestone highlights.
+
+MODELS DEFINED HERE:
+1. `TickerItem`: Skills scrolling continuously across the horizontal banner ribbon.
+2. `AboutStat`: The 4 quick-stat highlight cards in the About section.
+3. `SkillCategory` & `Skill`: Technical toolkit categories (Languages, Analysis) and individual tools.
+4. `Education`: Academic degrees, university name, year, and completion badges.
+5. `CertificationCategory` & `Certification`: Professional certificates, issuers, and verification URLs.
+6. `Achievement`: Tangible outcomes and milestones in the Highlights section.
+"""
+
 from django.db import models
 from apps.core.models import OrderableModel
 from apps.core.utils import generate_upload_path
 from apps.core.validators import validate_image_file, validate_document_file
 
 class TickerItem(OrderableModel):
-    """Keywords scrolling continuously in the marquee ticker tape."""
+    """Keywords scrolling continuously in the marquee ticker tape (e.g. PYTHON, SQL, POWER BI)."""
     text = models.CharField(max_length=50, help_text="e.g. PYTHON, SQL, POWER BI, DAX")
 
     class Meta(OrderableModel.Meta):
@@ -16,13 +34,13 @@ class TickerItem(OrderableModel):
 
 
 class AboutStat(OrderableModel):
-    """Statistics / Highlights cards shown in the About section."""
+    """Statistics and highlight cards shown in the About section (e.g. 03 Featured projects)."""
     number = models.CharField(max_length=20, help_text="e.g. 03, 02, 05+")
     label = models.CharField(max_length=100, help_text="e.g. Featured projects")
     detail = models.CharField(max_length=150, help_text="e.g. Dashboards & applications")
     is_accent = models.BooleanField(
         default=False, 
-        help_text="If checked, this card will use the lime accent background."
+        help_text="If checked, this card will use the signature accent background color."
     )
     icon_name = models.CharField(
         max_length=50, 
@@ -40,7 +58,7 @@ class AboutStat(OrderableModel):
 
 
 class SkillCategory(OrderableModel):
-    """Groupings for skills (e.g. Languages, Data analysis, Visualization)."""
+    """Groupings for skills (e.g. Languages, Data analysis, Visualization, Databases)."""
     name = models.CharField(max_length=100, unique=True)
 
     class Meta(OrderableModel.Meta):
@@ -52,7 +70,7 @@ class SkillCategory(OrderableModel):
 
 
 class Skill(OrderableModel):
-    """Individual tools / technologies within a category."""
+    """Individual tools and technologies within a category (e.g. Python, SQL, Power BI)."""
     category = models.ForeignKey(
         SkillCategory, 
         on_delete=models.CASCADE, 
@@ -82,7 +100,7 @@ class Skill(OrderableModel):
 
 
 class Education(OrderableModel):
-    """Academic qualifications and degrees."""
+    """Academic qualifications, university degrees, and graduation years."""
     degree = models.CharField(max_length=150, help_text="e.g. Bachelor of Engineering")
     field_of_study = models.CharField(max_length=150, help_text="e.g. Computer Engineering")
     institution = models.CharField(max_length=255, help_text="e.g. SVBIT · Gujarat Technological University (GTU)")
@@ -96,6 +114,7 @@ class Education(OrderableModel):
 
     def __str__(self):
         return f"{self.degree} ({self.year_display}) - {self.institution}"
+
 
 
 class CertificationCategory(OrderableModel):

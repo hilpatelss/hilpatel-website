@@ -1,16 +1,28 @@
 /**
- * Dynamic Project Artwork Graphic Component
+ * ==============================================================================
+ * Dynamic Project Artwork Graphic Component (DynamicArtGraphic.jsx)
+ * ==============================================================================
  *
- * Renders procedural, theme-adaptive data visualization cards for project previews:
- * - Direct image thumbnail if provided by CMS.
- * - 'kpi_bars': Interactive metric pills and bar chart visualizer.
- * - 'donut_chart': Average metric radial donut with distribution sparkline.
- * - 'billing_chart': Revenue trend bar chart with time series indicators.
+ * WHAT IS THIS COMPONENT?
+ * When you look at the "Featured Projects" section on the website, each project card
+ * has an attractive visual header illustrating analytics work.
+ * 
+ * HOW DOES IT WORK?
+ * 1. Image Thumbnail: If the project has an actual uploaded preview image from Django,
+ *    it displays that image.
+ * 2. Simulated Analytics Dashboard: If no custom image was uploaded, it generates an
+ *    Apple-style mini data visualization widget:
+ *    - Type 1 ('kpi_bars'): A bar chart with Focus Score & Screen Time KPIs.
+ *    - Type 2 ('donut_chart'): A radial donut chart and smooth sparkline curve.
+ *    - Type 3 ('billing_chart'): A monthly revenue bar chart.
+ * 
+ * This ensures that every project looks sleek, polished, and data-driven without
+ * requiring the user to create and upload manual screenshots for everything!
  */
 import React from 'react';
 
 export function DynamicArtGraphic({ project, index = 0 }) {
-  // If an uploaded thumbnail exists and art type is custom_image or not explicitly a chart
+  // Option 1: If an uploaded thumbnail exists and art type is custom_image or not explicitly a chart
   if (project.thumbnail_url && (project.custom_art_type === 'custom_image' || !project.custom_art_type)) {
     return (
       <img
@@ -25,7 +37,7 @@ export function DynamicArtGraphic({ project, index = 0 }) {
   // Determine chart style: respect project's explicit setting first, otherwise rotate based on index
   const artType = project.custom_art_type || (index % 3 === 0 ? 'kpi_bars' : index % 3 === 1 ? 'donut_chart' : 'billing_chart');
 
-  // Type 1: KPI bars (Digital Wellbeing style)
+  // Option 2A: KPI bars (Digital Wellbeing style bar chart)
   if (artType === 'kpi_bars') {
     return (
       <>
@@ -53,7 +65,7 @@ export function DynamicArtGraphic({ project, index = 0 }) {
     );
   }
 
-  // Type 2: Donut & Sparkline (BMI & Risk style)
+  // Option 2B: Donut & Sparkline (BMI & Risk style radial chart)
   if (artType === 'donut_chart') {
     return (
       <>
@@ -83,7 +95,7 @@ export function DynamicArtGraphic({ project, index = 0 }) {
     );
   }
 
-  // Type 3: Billing chart (Smart Bill style)
+  // Option 2C: Monthly revenue trend chart (Smart Bill style)
   return (
     <>
       <div className="billing-head">

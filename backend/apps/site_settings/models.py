@@ -1,10 +1,31 @@
+"""
+==============================================================================
+Site Settings & Content Management Models (apps/site_settings/models.py)
+==============================================================================
+
+WHAT IS THIS FILE?
+This file defines the Content Management System (CMS) models for global settings.
+Any change made to these models in the Django Admin (/admin/) updates the live website
+without needing code changes or rebuilds!
+
+MODELS DEFINED HERE:
+1. `SiteSettings`: Global profile data (owner name, headlines, bio, resume link, contact pitch).
+2. `DesignSettings`: Dynamic visual theme colors (Apple dark and light mode palette) and fonts.
+3. `NavigationItem`: Links shown in the top navigation bar and mobile drawer.
+4. `SectionConfig`: Allows the admin to show, hide, or reorder sections (About, Projects, Skills, etc.).
+5. `HeroMetric`: The key technology badge pills displayed beneath the hero headline.
+"""
+
 from django.db import models
 from apps.core.models import SingletonModel, OrderableModel
 from apps.core.validators import validate_hex_color, validate_image_file, validate_document_file
 from apps.core.utils import generate_upload_path
 
 class SiteSettings(SingletonModel):
-    """Global editable site configuration managed via Django Admin."""
+    """
+    Global editable site configuration managed via Django Admin.
+    Holds all the textual content, social profile links, and resume download URLs.
+    """
     site_title = models.CharField(max_length=150, default="Hil Patel Portfolio / 2026")
     brand_mark_initial = models.CharField(max_length=10, default="H")
     brand_mark_accent = models.CharField(max_length=5, default=".")
@@ -17,7 +38,7 @@ class SiteSettings(SingletonModel):
     github_url = models.URLField(default="https://github.com/hilpatelss", blank=True)
     twitter_url = models.URLField(blank=True, default="")
     
-    # Hero Content
+    # Hero Section Headline & Button Text
     hero_eyebrow = models.CharField(max_length=120, default="OPEN TO ENTRY-LEVEL OPPORTUNITIES")
     hero_kicker = models.CharField(
         max_length=200, 
@@ -31,7 +52,7 @@ class SiteSettings(SingletonModel):
     hero_secondary_button_text = models.CharField(max_length=50, default="Download resume")
     hero_secondary_button_url = models.CharField(max_length=200, default="/resume.pdf")
     
-    # Bio and Narratives
+    # Bio and Narrative Paragraphs
     intro_text = models.CharField(
         max_length=300, 
         default="I turn raw data into clear insights and practical decisions."
@@ -46,7 +67,7 @@ class SiteSettings(SingletonModel):
         default="My work spans exploratory data analysis, interactive Power BI dashboards, and a Django-based billing system. I like connecting the technical details with the bigger business question: what does the data actually tell us?"
     )
     
-    # Media Files
+    # Uploaded Media Files (Profile pictures and PDF Resumes)
     profile_image = models.ImageField(
         upload_to=generate_upload_path('profile'),
         validators=[validate_image_file],
@@ -73,7 +94,7 @@ class SiteSettings(SingletonModel):
         null=True
     )
     
-    # SEO & OpenGraph
+    # SEO & OpenGraph Social Share Previews
     seo_meta_title = models.CharField(
         max_length=200, 
         default="Hil Patel — Data Analyst Portfolio",

@@ -1,8 +1,22 @@
+"""
+==============================================================================
+Site Settings Django Admin Interface (apps/site_settings/admin.py)
+==============================================================================
+
+WHAT IS THIS FILE?
+This file customizes the visual forms inside the Django Admin dashboard (/admin/).
+It groups fields into clean, organized sections (Fieldsets) and configures
+convenience features like quick-editing display orders and visibility checkboxes
+directly from the list view.
+"""
+
 from django.contrib import admin
 from .models import SiteSettings, DesignSettings, NavigationItem, SectionConfig, HeroMetric
 
 @admin.register(SiteSettings)
 class SiteSettingsAdmin(admin.ModelAdmin):
+    """Admin interface for global portfolio text, links, and uploaded files."""
+    # Group fields into clean titled boxes inside the edit screen
     fieldsets = (
         ("Site Identity & Branding", {
             "fields": (
@@ -65,15 +79,18 @@ class SiteSettingsAdmin(admin.ModelAdmin):
         }),
     )
 
+    # Singleton protection: allow creating if table is empty, but prevent duplicates
     def has_add_permission(self, request):
         return not SiteSettings.objects.exists()
 
+    # Prevent deleting the master settings row
     def has_delete_permission(self, request, obj=None):
         return False
 
 
 @admin.register(DesignSettings)
 class DesignSettingsAdmin(admin.ModelAdmin):
+    """Admin interface for visual theme colors, typography, and border radius."""
     fieldsets = (
         ("Theme Configuration", {
             "fields": (
@@ -115,7 +132,9 @@ class DesignSettingsAdmin(admin.ModelAdmin):
 
 @admin.register(NavigationItem)
 class NavigationItemAdmin(admin.ModelAdmin):
+    """Admin interface for top navigation menu links."""
     list_display = ('label', 'url', 'display_order', 'is_external', 'is_visible')
+    # list_editable lets you change order numbers and visibility right in the table
     list_editable = ('display_order', 'is_visible')
     list_display_links = ('label',)
     list_filter = ('is_visible', 'is_external')
@@ -124,6 +143,7 @@ class NavigationItemAdmin(admin.ModelAdmin):
 
 @admin.register(SectionConfig)
 class SectionConfigAdmin(admin.ModelAdmin):
+    """Admin interface for section ordering and visibility."""
     list_display = ('section_key', 'index_label', 'title_line1', 'display_order', 'is_visible')
     list_editable = ('display_order', 'is_visible')
     list_display_links = ('section_key',)
@@ -133,8 +153,10 @@ class SectionConfigAdmin(admin.ModelAdmin):
 
 @admin.register(HeroMetric)
 class HeroMetricAdmin(admin.ModelAdmin):
+    """Admin interface for hero metric badge pills."""
     list_display = ('text', 'icon_name', 'display_order', 'is_visible')
     list_editable = ('display_order', 'is_visible')
     list_display_links = ('text',)
     search_fields = ('text',)
+
 

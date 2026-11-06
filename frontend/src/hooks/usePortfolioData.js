@@ -1,17 +1,31 @@
 /**
- * Portfolio Data Hook for hilpatel.site
+ * ==============================================================================
+ * Central Portfolio Data Hook (usePortfolioData.js)
+ * ==============================================================================
  *
- * Responsibilities:
- * - Bootstraps all dynamic CMS data in parallel using Promise.allSettled.
- * - Provides comprehensive, presentation-grade local fallbacks for Hil Patel's portfolio.
- * - Maps dynamic theme tokens (accent, background, surface, fonts) to CSS variables.
- * - Tracks API lifecycle states ('pending' -> 'success' / 'error') for the LoadingScreen.
- * - Manages concurrent request IDs to discard stale responses on retries.
+ * WHAT IS THIS FILE?
+ * This is the central data pipeline for the entire website.
+ * 
+ * WHY DOES IT EXIST?
+ * Instead of having 8 different sections each make their own separate API calls 
+ * to the Django backend (which would be slow and chaotic), this custom React hook:
+ * 1. Downloads all portfolio data together in parallel using `Promise.allSettled`.
+ * 2. Provides complete, presentation-quality fallback information so the website 
+ *    never looks empty or broken if the backend server is temporarily waking up.
+ * 3. Injects custom color tokens (accent colors, background colors) directly into CSS.
+ * 4. Tells the `<LoadingScreen />` whether the API request is still pending, succeeded, 
+ *    or timed out.
  */
+
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { api } from '../services/api';
 
-// Safe presentation fallbacks preserving original Hil Patel identity
+/**
+ * DEFAULT PRESENTATION FALLBACKS
+ * If the Django backend takes longer than usual to spin up on cold starts,
+ * these authentic defaults ensure the website still renders completely
+ * with Hil Patel's accurate portfolio details.
+ */
 const DEFAULT_FALLBACKS = {
   site: {
     site_title: "Hil Patel Portfolio / 2026",
@@ -203,11 +217,22 @@ const DEFAULT_FALLBACKS = {
 };
 
 export function usePortfolioData() {
+  // Holds the active portfolio content (starts with defaults, then updates with backend data)
   const [data, setData] = useState(DEFAULT_FALLBACKS);
+  // Tracks whether the initial fetch is currently in progress
   const [loading, setLoading] = useState(true);
+  // Holds any network or server error that occurs
   const [error, setError] = useState(null);
-  const [apiStatus, setApiStatus] = useState('pending'); // 'pending' | 'success' | 'error'
+  // Tracks API lifecycle: 'pending' (fetching) -> 'success' (ready) | 'error' (failed/timed out)
+  const [apiStatus, setApiStatus] = useState('pending');
 
+  /**
+   * Translates backend design colors into active CSS Custom Properties (variables).
+   * For example, it updates `--accent` to Apple blue (#0071E3 in light, #2997FF in dark).
+   * 
+   * @param {Object} design - Design colors object from the backend
+   * @param {'dark'|'light'} themeMode - The current active theme
+   */
   const applyDesignTokens = (design, themeMode = 'dark') => {
     if (!design) return;
     const root = document.documentElement;
@@ -280,8 +305,14 @@ export function usePortfolioData() {
     if (design.border_radius) root.style.setProperty('--radius', design.border_radius);
   };
 
+  // Tracks sequential request IDs to discard obsolete data if a user retries
   const requestIdRef = useRef(0);
 
+  /**
+   * Main loader function.
+   * Uses Promise.allSettled to fetch all endpoints simultaneously without failing
+   * completely if one single optional endpoint encounters an issue.
+   */
   const loadData = useCallback(async () => {
     const currentRequestId = ++requestIdRef.current;
     setLoading(true);

@@ -1,3 +1,22 @@
+"""
+==============================================================================
+Analytics Automated Test Suite (tests.py)
+==============================================================================
+
+WHAT IS THIS FILE?
+This file contains automated checks (unit tests) that verify our visitor
+logging system works reliably under all scenarios.
+
+WHAT SCENARIOS ARE TESTED?
+1. Valid desktop visitor log creation.
+2. Mobile and light theme handling.
+3. Fallback when given an invalid theme name.
+4. Clean shutdown when logging is disabled in settings.
+5. Protection of the admin dashboard from unauthenticated users.
+6. Error isolation: if the database fails, the server reports an error without crashing.
+7. Rough and GPS-level location logging.
+8. Fallback to Cloudflare edge server headers when client location is omitted.
+"""
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from rest_framework.test import APIClient
@@ -7,11 +26,15 @@ from apps.analytics.models import VisitorLog
 
 
 class VisitorLogTests(TestCase):
+    """Automated test cases for the visitor telemetry endpoint."""
+
     def setUp(self):
+        """Prepares a mock HTTP client before each test method runs."""
         self.client = APIClient()
         self.log_url = reverse('analytics:visitor-log')
 
     def test_record_valid_visitor_log(self):
+        """Verifies standard desktop log submission creates a valid record in the database."""
         payload = {
             "path": "/",
             "device_category": "desktop",
@@ -31,6 +54,7 @@ class VisitorLogTests(TestCase):
         self.assertTrue(log.ip_address)
 
     def test_record_light_theme_visitor_log(self):
+        """Verifies light mode preferences and mobile viewports are recorded correctly."""
         payload = {
             "path": "/#projects",
             "device_category": "mobile",
@@ -47,6 +71,7 @@ class VisitorLogTests(TestCase):
         self.assertEqual(log.device_category, "mobile")
 
     def test_unknown_theme_fallback(self):
+        """Verifies that unfamiliar theme names gracefully fallback to 'unknown'."""
         payload = {
             "path": "/#about",
             "device_category": "tablet",
@@ -61,6 +86,7 @@ class VisitorLogTests(TestCase):
 
     @override_settings(ENABLE_VISITOR_LOGGING=False)
     def test_disabled_visitor_logging(self):
+        """Verifies that when logging is toggled off in settings, nothing is saved to DB."""
         payload = {
             "path": "/",
             "device_category": "desktop",
@@ -73,6 +99,7 @@ class VisitorLogTests(TestCase):
         self.assertEqual(VisitorLog.objects.count(), 0)
 
     def test_admin_access_protection(self):
+        """Ensures that only logged-in superusers can view the visitor analytics admin page."""
         admin_url = reverse('admin:analytics_visitorlog_changelist')
         
         # Unauthenticated request redirects to admin login
@@ -93,6 +120,7 @@ class VisitorLogTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_database_error_isolation(self):
+        """Verifies server returns a clean 500 error if the database write fails."""
         from unittest.mock import patch
         with patch('apps.analytics.serializers.VisitorLogSerializer.save', side_effect=Exception("Simulated database failure")):
             payload = {
@@ -106,6 +134,7 @@ class VisitorLogTests(TestCase):
             self.assertIn('error', response.data)
 
     def test_record_rough_location(self):
+        """Verifies city, state, country, and timezone location strings are recorded accurately."""
         payload = {
             "path": "/",
             "device_category": "desktop",
@@ -129,6 +158,7 @@ class VisitorLogTests(TestCase):
         self.assertIn("IN", log.location_display)
 
     def test_record_exact_location(self):
+        """Verifies GPS coordinate floats are saved with high precision."""
         payload = {
             "path": "/#skills",
             "device_category": "mobile",
@@ -148,6 +178,7 @@ class VisitorLogTests(TestCase):
         self.assertIn("GPS:", log.location_display)
 
     def test_cloudflare_geo_headers_fallback(self):
+        """Verifies fallback to HTTP headers if client does not supply location data."""
         payload = {
             "path": "/#projects",
             "device_category": "desktop",

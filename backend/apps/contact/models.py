@@ -1,3 +1,18 @@
+"""
+==============================================================================
+Contact Message Model (apps/contact/models.py)
+==============================================================================
+
+WHAT IS THIS FILE?
+When someone types their name, email, and a message into the portfolio's contact form,
+this model securely saves the inquiry into the database so no message is ever lost.
+
+ADMINISTRATIVE WORKFLOW:
+- Tracks message status: New / Unread -> In Progress -> Responded / Closed -> Spam.
+- Records IP address and browser User-Agent for spam investigation.
+- Allows Hil Patel to keep private internal notes (e.g. "Interview scheduled for Tuesday").
+"""
+
 from django.db import models
 from apps.core.models import TimeStampedModel
 
@@ -29,10 +44,11 @@ class ContactMessage(TimeStampedModel):
     )
 
     class Meta:
-        ordering = ['-created_at']
+        ordering = ['-created_at']  # Newest messages appear at the top
         verbose_name = "Contact Message"
         verbose_name_plural = "Contact Messages"
 
     def __str__(self):
         return f"[{self.get_status_display()}] {self.name} <{self.email}> on {self.created_at.strftime('%Y-%m-%d')}"
+
 
