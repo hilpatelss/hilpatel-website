@@ -33,6 +33,12 @@ async function request(endpoint, options = {}) {
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
   const url = `${BASE_URL}${cleanEndpoint}`;
 
+  // Create an AbortController so hanging or stalled connections time out
+  // cleanly after 25 seconds instead of freezing indefinitely
+  const controller = new AbortController();
+  const timeoutMs = options.timeout || 25000;
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
   const config = {
     // 'no-cache' ensures that when the site owner updates information in the Django admin panel,
     // visitors will see the updated content immediately rather than stale cached copies.
@@ -41,31 +47,38 @@ async function request(endpoint, options = {}) {
       'Content-Type': 'application/json',
       ...options.headers,
     },
+    signal: options.signal || controller.signal,
     ...options,
   };
 
-  // Perform the actual network fetch call
-  const response = await fetch(url, config);
+  try {
+    // Perform the actual network fetch call
+    const response = await fetch(url, config);
+    clearTimeout(timeoutId);
 
-  // If the server answered with an error status (like 404 Not Found or 500 Server Error):
-  if (!response.ok) {
-    let errorData = null;
-    try {
-      // Try to parse error details sent back by Django
-      errorData = await response.json();
-    } catch (e) {
-      // If the error response was not JSON, fall back to the generic HTTP status text
-      errorData = { detail: response.statusText };
+    // If the server answered with an error status (like 404 Not Found or 500 Server Error):
+    if (!response.ok) {
+      let errorData = null;
+      try {
+        // Try to parse error details sent back by Django
+        errorData = await response.json();
+      } catch (e) {
+        // If the error response was not JSON, fall back to the generic HTTP status text
+        errorData = { detail: response.statusText };
+      }
+      // Create a clear Error object so caller functions know exactly what went wrong
+      const error = new Error(errorData?.error || errorData?.detail || `HTTP Error ${response.status}`);
+      error.status = response.status;
+      error.data = errorData;
+      throw error;
     }
-    // Create a clear Error object so caller functions know exactly what went wrong
-    const error = new Error(errorData?.error || errorData?.detail || `HTTP Error ${response.status}`);
-    error.status = response.status;
-    error.data = errorData;
-    throw error;
-  }
 
-  // If the server answered successfully (HTTP 200 OK), parse and return the JSON data
-  return response.json();
+    // If the server answered successfully (HTTP 200 OK), parse and return the JSON data
+    return response.json();
+  } catch (err) {
+    clearTimeout(timeoutId);
+    throw err;
+  }
 }
 
 /**

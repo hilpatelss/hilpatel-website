@@ -307,17 +307,60 @@ export function usePortfolioData() {
 
   // Tracks sequential request IDs to discard obsolete data if a user retries
   const requestIdRef = useRef(0);
+  // Holds the active timer for scheduled automatic retries
+  const retryTimerRef = useRef(null);
+  // Prevents sending duplicate concurrent network requests while one is already running
+  const inFlightRef = useRef(false);
+  // Tracks component mount lifecycle to avoid state updates after unmount
+  const isMountedRef = useRef(true);
+  // Keeps a stable reference to loadData so timers can invoke the latest function
+  const loadDataRef = useRef();
+
+  /**
+   * Clears any scheduled retry timer cleanly.
+   */
+  const clearRetry = useCallback(() => {
+    if (retryTimerRef.current) {
+      clearTimeout(retryTimerRef.current);
+      retryTimerRef.current = null;
+    }
+  }, []);
+
+  /**
+   * Schedules a delayed background re-fetch attempt.
+   * When the Django backend is waking up or temporarily unavailable,
+   * this automatically pings the server so the website loads the instant
+   * the API becomes available!
+   */
+  const scheduleRetry = useCallback((delay = 4000) => {
+    clearRetry();
+    if (!isMountedRef.current) return;
+    retryTimerRef.current = setTimeout(() => {
+      if (isMountedRef.current && !inFlightRef.current && loadDataRef.current) {
+        loadDataRef.current();
+      }
+    }, delay);
+  }, [clearRetry]);
 
   /**
    * Main loader function.
    * Uses Promise.allSettled to fetch all endpoints simultaneously without failing
    * completely if one single optional endpoint encounters an issue.
+   * If the backend is waking up or unavailable, it automatically retries until successful.
    */
   const loadData = useCallback(async () => {
+    // Avoid duplicate overlapping network calls if one is already running
+    if (inFlightRef.current) return;
+    inFlightRef.current = true;
+
+    // Clear any pending retry timer since we are actively fetching now
+    clearRetry();
+
     const currentRequestId = ++requestIdRef.current;
     setLoading(true);
     setError(null);
     setApiStatus('pending');
+
     try {
       // Parallel fetch of bootstrap and content
       const [
@@ -438,25 +481,73 @@ export function usePortfolioData() {
         console.warn("API initialization failed:", failReason);
         setError(failReason);
         setApiStatus('error');
+        // Automatically schedule refetch attempt so that when the API becomes available,
+        // live data is retrieved and the loading/timeout screen is immediately dismissed!
+        scheduleRetry(4000);
       } else {
+        setError(null);
         setApiStatus('success');
+        clearRetry();
       }
     } catch (err) {
       if (currentRequestId !== requestIdRef.current) return;
       console.warn("Failed to reach Django API, using presentation fallbacks:", err);
       setError(err);
       setApiStatus('error');
+      // Automatically schedule refetch attempt on network error
+      scheduleRetry(4000);
     } finally {
+      inFlightRef.current = false;
       if (currentRequestId === requestIdRef.current) {
         setLoading(false);
       }
     }
-  }, []);
+  }, [clearRetry, scheduleRetry]);
 
+  // Keep loadDataRef current
+  loadDataRef.current = loadData;
+
+  /**
+   * Manual refetch trigger.
+   * Cancels any pending timer and immediately triggers a fresh API load.
+   */
+  const refetch = useCallback(() => {
+    clearRetry();
+    inFlightRef.current = false; // Reset in-flight guard to allow immediate manual retry
+    return loadData();
+  }, [clearRetry, loadData]);
+
+  // Initial mount: load data and listen for online/focus/visibility events to auto-refetch
   useEffect(() => {
+    isMountedRef.current = true;
     loadData();
-  }, [loadData]);
 
-  return { data, loading, error, apiStatus, refetch: loadData, applyDesignTokens };
+    // Recheck immediately if browser reconnects to internet or tab becomes active again
+    const handleRecheck = () => {
+      if (apiStatus !== 'success' && !inFlightRef.current) {
+        clearRetry();
+        loadData();
+      }
+    };
+
+    window.addEventListener('online', handleRecheck);
+    window.addEventListener('focus', handleRecheck);
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        handleRecheck();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    return () => {
+      isMountedRef.current = false;
+      clearRetry();
+      window.removeEventListener('online', handleRecheck);
+      window.removeEventListener('focus', handleRecheck);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
+  }, [loadData, clearRetry, apiStatus]);
+
+  return { data, loading, error, apiStatus, refetch, applyDesignTokens };
 }
 

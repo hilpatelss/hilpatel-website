@@ -262,8 +262,12 @@ Because free-tier cloud backends (like Render or Neon PostgreSQL) can go to slee
                             - Still waiting in backgrd   * Explore GitHub
 ```
 
-### Automatic Recovery Guarantee
-Even if the 90-second timeout screen appears, the React app **never cancels the background network connection**. If the server suddenly wakes up and responds at second 95, the timeout screen automatically vanishes and the portfolio seamlessly displays!
+### Automatic Recovery & Active Background Polling Guarantee
+Even if the 90-second timeout screen appears, the React app **never gives up or cancels API loading**. 
+1. **Background Auto-Retry Loop**: When an initial request fails (e.g., Render returning 502 while spinning up), `usePortfolioData` automatically retries every 4 seconds in the background without screen disruption or duplicate concurrent requests.
+2. **Instant Reconnection Listeners**: If the browser reconnects to the network (`online`) or the user focuses the tab (`focus`, `visibilitychange`), an immediate refetch is triggered.
+3. **Resilient Abort Timeout**: Individual requests use a 25-second `AbortController` timeout so stalled or dropped TCP connections are aborted and retried rather than hanging indefinitely.
+4. **Instant Dismissal**: The second the API responds with 200 OK (whether at second 35, 60, or 95), the live backend data updates, the loading or timeout screen automatically vanishes, and the portfolio seamlessly displays!
 
 ---
 

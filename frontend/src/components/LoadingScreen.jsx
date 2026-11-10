@@ -144,6 +144,7 @@ export function LoadingScreen({
   const startTimeRef = useRef(Date.now());
   const typingCompleteTimeRef = useRef(null);
   const onReadyToDismissRef = useRef(onReadyToDismiss);
+  const hasTriggeredDismissRef = useRef(false);
 
   // Keep dismiss callback ref current across re-renders
   useEffect(() => {
@@ -160,6 +161,7 @@ export function LoadingScreen({
   useEffect(() => {
     startTimeRef.current = Date.now();
     typingCompleteTimeRef.current = null;
+    hasTriggeredDismissRef.current = false;
     setDisplayedText('');
     setIsTypingComplete(false);
     setIsDismissing(false);
@@ -207,10 +209,12 @@ export function LoadingScreen({
    */
   useEffect(() => {
     if (apiStatus !== 'success') return;
+    if (hasTriggeredDismissRef.current) return;
 
-    // Immediate dismissal with fade-out if recovering after extended delay / timeout
+    // Immediate dismissal with fade-out if recovering after extended delay / timeout (>= 30s)
     const elapsed = Date.now() - startTimeRef.current;
     if (elapsed >= 30000) {
+      hasTriggeredDismissRef.current = true;
       setIsDismissing(true);
       const dismissTimer = setTimeout(() => {
         if (onReadyToDismissRef.current) {
@@ -228,9 +232,10 @@ export function LoadingScreen({
 
       const condition1 = apiStatus === 'success';
       const condition2 = totalElapsed >= 4500;
-      const condition3 = isTypingComplete && typingCompleteTimeRef.current !== null && readingElapsed >= 2000;
+      const condition3 = (isTypingComplete && typingCompleteTimeRef.current !== null && readingElapsed >= 2000) || totalElapsed >= 6000;
 
-      if (condition1 && condition2 && condition3 && !isDismissing) {
+      if (condition1 && condition2 && condition3 && !hasTriggeredDismissRef.current) {
+        hasTriggeredDismissRef.current = true;
         setIsDismissing(true);
         clearInterval(evaluationInterval);
         setTimeout(() => {
@@ -242,7 +247,7 @@ export function LoadingScreen({
     }, 50);
 
     return () => clearInterval(evaluationInterval);
-  }, [apiStatus, isTypingComplete, isDismissing]);
+  }, [apiStatus, isTypingComplete]);
 
   return (
     <aside
