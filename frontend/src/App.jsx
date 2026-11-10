@@ -46,6 +46,20 @@ function PortfolioApp() {
   const [isLoaderFinished, setIsLoaderFinished] = useState(false);
 
   // --------------------------------------------------------------------------
+  // EFFECT 0: Guaranteed Main Page Reveal when API Succeeds
+  // --------------------------------------------------------------------------
+  // When the backend API responds successfully, ensures the main page is revealed
+  // without being trapped behind the loading screen.
+  useEffect(() => {
+    if (apiStatus === 'success' && !isLoaderFinished) {
+      const revealTimer = setTimeout(() => {
+        setIsLoaderFinished(true);
+      }, 350);
+      return () => clearTimeout(revealTimer);
+    }
+  }, [apiStatus, isLoaderFinished]);
+
+  // --------------------------------------------------------------------------
   // EFFECT 1: Apply Dynamic Theme Variables
   // --------------------------------------------------------------------------
   // Whenever the active theme (light/dark) or design settings change, update

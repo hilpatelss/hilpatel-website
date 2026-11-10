@@ -473,9 +473,14 @@ export function usePortfolioData() {
         aboutStats,
       ].every((res) => res.status === 'rejected');
 
-      const isBootstrapValid = bootstrap.status === 'fulfilled' && bootstrap.value && typeof bootstrap.value === 'object' && bootstrap.value.site;
+      // Check whether bootstrap payload or individual content endpoints responded with valid data
+      const hasValidBootstrap = bootstrap.status === 'fulfilled' && bootstrap.value && typeof bootstrap.value === 'object' && !bootstrap.value.error;
+      const hasCoreContent = [projects, skills, education, certifications, achievements].some(
+        (res) => res.status === 'fulfilled' && res.value && !res.value.error && !res.value.detail
+      );
+      const isApiAvailable = !allRejected && (hasValidBootstrap || hasCoreContent);
 
-      if (allRejected || !isBootstrapValid) {
+      if (!isApiAvailable) {
         const failReason = (bootstrap.status === 'rejected' && bootstrap.reason) ||
           new Error("The backend API could not be reached. (Render service may be waking up)");
         console.warn("API initialization failed:", failReason);

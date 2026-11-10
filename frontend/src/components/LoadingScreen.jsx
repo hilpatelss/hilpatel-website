@@ -142,14 +142,23 @@ export function LoadingScreen({
 
   // Reference timestamps for elapsed time calculations
   const startTimeRef = useRef(Date.now());
-  const typingCompleteTimeRef = useRef(null);
   const onReadyToDismissRef = useRef(onReadyToDismiss);
   const hasTriggeredDismissRef = useRef(false);
+  const dismissTimerRef = useRef(null);
 
   // Keep dismiss callback ref current across re-renders
   useEffect(() => {
     onReadyToDismissRef.current = onReadyToDismiss;
   }, [onReadyToDismiss]);
+
+  // Clean up any pending dismiss timer on final unmount only
+  useEffect(() => {
+    return () => {
+      if (dismissTimerRef.current) {
+        clearTimeout(dismissTimerRef.current);
+      }
+    };
+  }, []);
 
   // Select exactly one random loading message per session cycle
   const selectedMessage = useMemo(() => {
@@ -160,7 +169,6 @@ export function LoadingScreen({
   // Session lifecycle: initialize timers for state progression
   useEffect(() => {
     startTimeRef.current = Date.now();
-    typingCompleteTimeRef.current = null;
     hasTriggeredDismissRef.current = false;
     setDisplayedText('');
     setIsTypingComplete(false);
@@ -193,7 +201,6 @@ export function LoadingScreen({
       if (charIndex >= selectedMessage.length) {
         clearInterval(typingInterval);
         setIsTypingComplete(true);
-        typingCompleteTimeRef.current = Date.now();
       }
     }, 35);
 
@@ -201,53 +208,27 @@ export function LoadingScreen({
   }, [selectedMessage]);
 
   /**
-   * Smooth Timing Coordinator:
-   * Prevents jarring flashes by evaluating required completion conditions:
-   * 1. API request is successful (apiStatus === 'success').
-   * 2. If API succeeds after delay (>= 30s or >= 90s), dismiss immediately with a smooth fade-out.
-   * 3. For fast initial loads, guarantee minimum display duration (>= 4500ms) for reading message.
+   * Immediate and Reliable Main Page Reveal on API Success:
+   * Rule: "If all required APIs load successfully, immediately display the website normally."
+   * 
+   * When apiStatus becomes 'success' (whether on initial load or recovering after delay/timeout):
+   * 1. Fades out the loading overlay with a smooth 280ms transition.
+   * 2. Calls onReadyToDismiss() without cancellation race-conditions.
    */
   useEffect(() => {
     if (apiStatus !== 'success') return;
     if (hasTriggeredDismissRef.current) return;
 
-    // Immediate dismissal with fade-out if recovering after extended delay / timeout (>= 30s)
-    const elapsed = Date.now() - startTimeRef.current;
-    if (elapsed >= 30000) {
-      hasTriggeredDismissRef.current = true;
-      setIsDismissing(true);
-      const dismissTimer = setTimeout(() => {
-        if (onReadyToDismissRef.current) {
-          onReadyToDismissRef.current();
-        }
-      }, 400);
-      return () => clearTimeout(dismissTimer);
-    }
+    hasTriggeredDismissRef.current = true;
+    setIsDismissing(true);
 
-    // Normal fast initial load coordinator
-    const evaluationInterval = setInterval(() => {
-      const now = Date.now();
-      const totalElapsed = now - startTimeRef.current;
-      const readingElapsed = typingCompleteTimeRef.current ? now - typingCompleteTimeRef.current : 0;
-
-      const condition1 = apiStatus === 'success';
-      const condition2 = totalElapsed >= 4500;
-      const condition3 = (isTypingComplete && typingCompleteTimeRef.current !== null && readingElapsed >= 2000) || totalElapsed >= 6000;
-
-      if (condition1 && condition2 && condition3 && !hasTriggeredDismissRef.current) {
-        hasTriggeredDismissRef.current = true;
-        setIsDismissing(true);
-        clearInterval(evaluationInterval);
-        setTimeout(() => {
-          if (onReadyToDismissRef.current) {
-            onReadyToDismissRef.current();
-          }
-        }, 550);
+    // Reliable dismissal timer: NOT cancelled by re-renders
+    dismissTimerRef.current = setTimeout(() => {
+      if (onReadyToDismissRef.current) {
+        onReadyToDismissRef.current();
       }
-    }, 50);
-
-    return () => clearInterval(evaluationInterval);
-  }, [apiStatus, isTypingComplete]);
+    }, 280);
+  }, [apiStatus]);
 
   return (
     <aside
