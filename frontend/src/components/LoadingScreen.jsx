@@ -62,7 +62,7 @@ const LOADING_MESSAGES = [
   "Initializing application services...",
   "Validating server responses...",
   "Preparing technical project highlights...",
-  "Organizing skills, projects, and certifications...",
+  "Organizing skills, projects, and certifications..",
   "Optimizing content delivery...",
   "Loading essential application resources...",
   "Verifying data consistency across services...",
