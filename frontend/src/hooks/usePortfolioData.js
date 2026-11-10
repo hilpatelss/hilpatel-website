@@ -517,14 +517,17 @@ export function usePortfolioData() {
     return loadData();
   }, [clearRetry, loadData]);
 
-  // Initial mount: load data and listen for online/focus/visibility events to auto-refetch
+  const apiStatusRef = useRef(apiStatus);
+  apiStatusRef.current = apiStatus;
+
+  // Initial mount: load data once and listen for online/focus/visibility events to auto-refetch
   useEffect(() => {
     isMountedRef.current = true;
     loadData();
 
     // Recheck immediately if browser reconnects to internet or tab becomes active again
     const handleRecheck = () => {
-      if (apiStatus !== 'success' && !inFlightRef.current) {
+      if (apiStatusRef.current !== 'success' && !inFlightRef.current) {
         clearRetry();
         loadData();
       }
@@ -546,7 +549,7 @@ export function usePortfolioData() {
       window.removeEventListener('focus', handleRecheck);
       document.removeEventListener('visibilitychange', handleVisibility);
     };
-  }, [loadData, clearRetry, apiStatus]);
+  }, [loadData, clearRetry]);
 
   return { data, loading, error, apiStatus, refetch, applyDesignTokens };
 }

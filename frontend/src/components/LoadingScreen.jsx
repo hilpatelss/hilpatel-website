@@ -3,176 +3,204 @@
  * Portfolio Loading & Timeout Experience Component (LoadingScreen.jsx)
  * ==============================================================================
  * 
- * WHAT IS THIS COMPONENT?
- * When a visitor first opens hilpatel.site, this component greets them with a clean,
- * Apple-inspired loading screen while React talks to the Django backend.
- * 
- * WHY IS THIS COMPONENT SPECIAL?
- * Cloud hosting platforms like Render often put free-tier servers to "sleep" when idle.
- * When a new visitor arrives, waking up the server can take 30 to 60 seconds.
- * Instead of showing a broken error or a frozen screen, this component provides a
- * 3-stage progressive experience:
- * 
- * 1. STAGE 1 (0 to 30 Seconds) - INITIAL LOADING:
- *    - Types out an authentic technical loading message character-by-character.
- *    - Keeps the user engaged and informs them that resources are loading.
- * 
- * 2. STAGE 2 (30 to 89 Seconds) - SERVER DELAY WARNING:
- *    - If the backend is taking longer to respond, fades in a polite notice:
- *      "We're experiencing a slight delay in establishing a connection with the server..."
- *    - No buttons are shown; requests continue safely in the background.
- * 
- * 3. STAGE 3 (90+ Seconds) - CONNECTION TIMEOUT:
- *    - If the server has still not responded after 90 seconds, transitions to a helpful card:
- *      "The server is currently taking longer than expected to respond..."
- *    - Gives the visitor two direct options: "Visit LinkedIn" or "Explore GitHub".
- * 
- * 4. AUTOMATIC RECOVERY:
- *    - If the backend finishes loading at ANY moment (even after 90 seconds), the screen
- *      immediately fades out and reveals the actual website!
+ * Recreated to match the reference design:
+ * 1. Background: Pure/near-black (#030507) with subtle dark blue radial glow.
+ * 2. Terminal Icon: Rounded square (44px × 44px), blue border (#2196FF), navy core,
+ *    subtle outer glow, vector terminal prompt icon (>_).
+ * 3. Main Heading: "Just a moment..." in crisp bold white (27px desktop).
+ * 4. Loading Message: Dynamic typewriter in bright blue (#2196FF) with blinking cursor,
+ *    cycling through 25 professional natural loading messages every 10 seconds.
+ * 5. 4-Segment Progress Indicator: Horizontal rounded segments (42px × 5px)
+ *    filling progressively every 650ms.
+ * 6. Bottom Status Caption: "Initializing experience • Please wait" in muted gray (14px).
+ * 7. Progressive States:
+ *    - STAGE 1 (0–30s): Clean minimal loader with 10s message cycling.
+ *    - STAGE 2 (30–89s): Polite server delay warning notice (no buttons).
+ *    - STAGE 3 (90s+): Connection timeout fallback card with Visit LinkedIn and Explore GitHub.
+ * 8. Immediate Dismissal: The instant API data is ready (apiStatus === 'success'),
+ *    fades out immediately with a smooth 400ms transition and reveals the main website!
  */
 
-import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Linkedin, Github } from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Linkedin, Github, Sun, Moon, Terminal } from 'lucide-react';
 import { getPersistedTheme } from '../context/ThemeContext';
 
 /**
- * List of rotating inspirational & technical status messages displayed
- * with a typewriter effect during initial portfolio loading.
+ * 25 professional, natural loading messages describing the initialization
+ * process without falsely claiming any incomplete operation succeeded.
+ * Prominently features the reference messages:
+ * - "Negotiating with the database..."
+ * - "Finalizing data synchronization..."
  */
 const LOADING_MESSAGES = [
-  "Establishing a secure connection to the server...",
-  "Initializing portfolio resources...",
-  "Retrieving the latest portfolio data...",
-  "Synchronizing application components...",
-  "Establishing database connectivity...",
-  "Fetching project information...",
-  "Loading professional experience and achievements...",
-  "Retrieving technical skills and expertise...",
-  "Processing incoming data requests...",
-  "Validating data integrity...",
-  "Preparing portfolio components...",
-  "Synchronizing the latest updates...",
-  "Connecting the frontend with backend services...",
-  "Executing database queries...",
-  "Loading project documentation and details...",
-  "Verifying API connectivity...",
-  "Processing application requests...",
-  "Retrieving the latest content from the database...",
-  "Initializing application services...",
-  "Validating server responses...",
-  "Preparing technical project highlights...",
-  "Organizing skills, projects, and certifications...",
-  "Optimizing content delivery...",
-  "Loading essential application resources...",
-  "Verifying data consistency across services...",
-  "Establishing communication with API endpoints...",
-  "Preparing professional portfolio information...",
-  "Synchronizing frontend and backend resources...",
-  "Performing final application checks...",
-  "Ensuring all resources are ready...",
-  "Finalizing data synchronization...",
-  "Checking application service availability...",
-  "Preparing your portfolio experience...",
-  "Loading the latest professional updates...",
-  "Validating all connected services...",
-  "Optimizing the application experience...",
-  "Retrieving verified portfolio information...",
-  "Completing the initialization process...",
-  "Performing final connectivity checks...",
-  "Preparing everything for presentation...",
-  "Your portfolio is almost ready...",
-  "Finalizing application initialization...",
-  "All systems are being prepared...",
-  "Loading your work and professional achievements...",
-  "Completing the final synchronization...",
-  "Preparing the interface for seamless navigation...",
-  "Ensuring a consistent user experience...",
-  "Final checks are in progress...",
-  "Your portfolio experience is being finalized...",
-  "Initialization is nearly complete..."
+  "Negotiating with the database...",
+  "Convincing the API to cooperate...",
+  "Waking up the backend services...",
+  "Asking Django to work its magic...",
+  "React is getting its components together...",
+  "Fetching data faster than my coffee disappears...",
+  "Synchronizing pixels with reality...",
+  "Making sure the database remembers everything...",
+  "Checking whether the server had its coffee...",
+  "Connecting all the digital dots...",
+  "Fetching professional achievements...",
+  "Loading skills without showing off too much...",
+  "Searching for bugs before they find us...",
+  "Making friends with the API endpoints...",
+  "Teaching the database some patience...",
+  "Making frontend and backend talk nicely...",
+  "Running background checks on incoming data...",
+  "Making sure everything is where it belongs...",
+  "Convincing JavaScript to behave...",
+  "Fetching projects worth talking about...",
+  "Polishing the digital experience...",
+  "Synchronizing data without disturbing the universe...",
+  "Checking if all services are still friends...",
+  "Preparing something better than a loading screen...",
+  "Making database queries feel important...",
+  "Asking the server for one small favour...",
+  "Loading technical skills and questionable coding habits...",
+  "Making every component feel included...",
+  "Double-checking everything because trust is expensive...",
+  "Making sure no bugs sneak into production...",
+  "Fetching portfolio data from its hiding place...",
+  "Connecting services and avoiding awkward silences...",
+  "Giving the backend a gentle reminder...",
+  "Verifying that everything is running smoothly...",
+  "Organizing digital information like a perfectionist...",
+  "Loading experience, projects and a little ambition...",
+  "Checking API responses for good behaviour...",
+  "Making the server look busy...",
+  "Turning database records into something beautiful...",
+  "Preparing the final digital presentation...",
+  "Almost ready, the server is just being dramatic...",
+  "Processing requests like a professional...",
+  "Making sure your browser gets the good stuff...",
+  "Checking for errors we definitely don't want...",
+  "Synchronizing everything behind the scenes...",
+  "Fetching fresh data, not yesterday's leftovers...",
+  "Making the internet a little more organized...",
+  "Performing final checks before the big reveal...",
+  "Getting all systems ready for your visit...",
+  "Everything is coming together. Stay curious..."
 ];
 
-
-/**
- * LoadingScreen Component
- * 
- * Orchestrates the portfolio's initial entry loading state with:
- * - 0–30s: INITIAL LOADING STATE (Typewriter message + animation).
- * - 30–89s: SERVER DELAY WARNING (Delicate warning card, no buttons).
- * - 90s+: CONNECTION TIMEOUT (Timeout message + Visit LinkedIn & Explore GitHub buttons).
- * - SUCCESS: Immediate seamless reveal of actual website whenever APIs load.
- * 
- * @param {string} apiStatus - Current API request state ('pending', 'success', 'error')
- * @param {Error|null} error - Any API error encountered
- * @param {Function} onRetry - Handler to trigger backend re-fetch
- * @param {Function} onReadyToDismiss - Callback when loading conditions are satisfied
- * @param {string} theme - Active theme override ('dark' or 'light')
- * @param {Object} site - Site configuration object containing social URLs
- */
 export function LoadingScreen({
   apiStatus = 'pending',
   error = null,
   onRetry,
   onReadyToDismiss,
   theme,
+  onToggleTheme,
   site,
 }) {
-  // Session key increments on retry to reset all timers and typewriter state cleanly
+  // Session key increments on retry to reset timers cleanly
   const [sessionKey, setSessionKey] = useState(0);
+
+  // Pick an initial random message so every visit starts with a fresh random message
+  const [messageIndex, setMessageIndex] = useState(() => {
+    return Math.floor(Math.random() * LOADING_MESSAGES.length);
+  });
+
+  // Track unplayed message indices in the current shuffle cycle to prevent duplicates
+  const unplayedIndicesRef = useRef([]);
+
+  // Helper to pick next random message without repeating the currently displayed one
+  const getNextRandomIndex = useCallback((currentIndex) => {
+    if (!unplayedIndicesRef.current || unplayedIndicesRef.current.length === 0) {
+      // Create a pool of all indices except the currently showing one
+      const pool = LOADING_MESSAGES.map((_, i) => i).filter((i) => i !== currentIndex);
+      // Fisher-Yates shuffle
+      for (let i = pool.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [pool[i], pool[j]] = [pool[j], pool[i]];
+      }
+      unplayedIndicesRef.current = pool;
+    }
+    return unplayedIndicesRef.current.pop() ?? Math.floor(Math.random() * LOADING_MESSAGES.length);
+  }, []);
 
   // Progressive typewriter text buffer
   const [displayedText, setDisplayedText] = useState('');
 
-  // Flag indicating the random message has completely typed out
-  const [isTypingComplete, setIsTypingComplete] = useState(false);
+  // 4-Segment progress indicator: 1 -> 2 -> 3 -> 4
+  const [activeSegment, setActiveSegment] = useState(1);
 
-  // Trigger for the CSS opacity fade-out transition before unmounting
+  // Fade-out transition trigger
   const [isDismissing, setIsDismissing] = useState(false);
 
-  // UI state machine: 'LOADING' (0-30s) | 'DELAY_WARNING' (30-89s) | 'CONNECTION_TIMEOUT' (90s+)
+  // Progressive UI state machine: 'LOADING' (0-29s) | 'DELAY_WARNING' (30-89s) | 'CONNECTION_TIMEOUT' (90s+)
   const [uiState, setUiState] = useState('LOADING');
 
-  // Resolve active theme: prioritizes direct prop, then cookie ('site-theme'), then localStorage
   const activeTheme = theme || getPersistedTheme();
-
-  // Social profile URLs from site settings or project defaults
   const linkedinUrl = site?.linkedin_url || "https://linkedin.com/in/hilpatelss";
   const githubUrl = site?.github_url || "https://github.com/hilpatelss";
 
-  // Reference timestamps for elapsed time calculations
-  const startTimeRef = useRef(Date.now());
-  const typingCompleteTimeRef = useRef(null);
   const onReadyToDismissRef = useRef(onReadyToDismiss);
+  onReadyToDismissRef.current = onReadyToDismiss;
+
+  const dismissTimerRef = useRef(null);
   const hasTriggeredDismissRef = useRef(false);
 
-  // Keep dismiss callback ref current across re-renders
+  // Clear dismiss timer on unmount
   useEffect(() => {
-    onReadyToDismissRef.current = onReadyToDismiss;
-  }, [onReadyToDismiss]);
+    return () => {
+      if (dismissTimerRef.current) {
+        clearTimeout(dismissTimerRef.current);
+      }
+    };
+  }, []);
 
-  // Select exactly one random loading message per session cycle
-  const selectedMessage = useMemo(() => {
-    const randomIndex = Math.floor(Math.random() * LOADING_MESSAGES.length);
-    return LOADING_MESSAGES[randomIndex];
-  }, [sessionKey]);
-
-  // Session lifecycle: initialize timers for state progression
+  // --------------------------------------------------------------------------
+  // 1. Message Rotation: Changes to a RANDOM message every EXACTLY 10 seconds
+  // --------------------------------------------------------------------------
   useEffect(() => {
-    startTimeRef.current = Date.now();
-    typingCompleteTimeRef.current = null;
-    hasTriggeredDismissRef.current = false;
+    const messageInterval = setInterval(() => {
+      setMessageIndex((prev) => getNextRandomIndex(prev));
+    }, 10000);
+
+    return () => clearInterval(messageInterval);
+  }, [sessionKey, getNextRandomIndex]);
+
+  // --------------------------------------------------------------------------
+  // 2. Typewriter Effect: Synchronized with message changes
+  // --------------------------------------------------------------------------
+  useEffect(() => {
     setDisplayedText('');
-    setIsTypingComplete(false);
-    setIsDismissing(false);
-    setUiState('LOADING');
+    const targetMessage = LOADING_MESSAGES[messageIndex] || '';
+    let charIndex = 0;
 
-    // Timer 1: 30s Server Delay Warning threshold
+    const typingInterval = setInterval(() => {
+      charIndex += 1;
+      setDisplayedText(targetMessage.slice(0, charIndex));
+
+      if (charIndex >= targetMessage.length) {
+        clearInterval(typingInterval);
+      }
+    }, 28);
+
+    return () => clearInterval(typingInterval);
+  }, [messageIndex, sessionKey]);
+
+  // --------------------------------------------------------------------------
+  // 3. Four-Segment Progress Indicator: Progressive fill 1 -> 2 -> 3 -> 4 -> 1
+  // --------------------------------------------------------------------------
+  useEffect(() => {
+    const segmentInterval = setInterval(() => {
+      setActiveSegment((prev) => (prev >= 4 ? 1 : prev + 1));
+    }, 650);
+
+    return () => clearInterval(segmentInterval);
+  }, []);
+
+  // --------------------------------------------------------------------------
+  // 4. Progressive States: 30s Server Delay Warning, 90s Connection Timeout
+  // --------------------------------------------------------------------------
+  useEffect(() => {
     const delayWarningTimer = setTimeout(() => {
       setUiState((current) => (current === 'LOADING' ? 'DELAY_WARNING' : current));
     }, 30000);
 
-    // Timer 2: 90s Connection Timeout threshold
     const connectionTimeoutTimer = setTimeout(() => {
       setUiState('CONNECTION_TIMEOUT');
     }, 90000);
@@ -183,71 +211,40 @@ export function LoadingScreen({
     };
   }, [sessionKey]);
 
-  // Typewriter effect: appends 1 character every 35ms until string completion
-  useEffect(() => {
-    let charIndex = 0;
-    const typingInterval = setInterval(() => {
-      charIndex += 1;
-      setDisplayedText(selectedMessage.slice(0, charIndex));
-
-      if (charIndex >= selectedMessage.length) {
-        clearInterval(typingInterval);
-        setIsTypingComplete(true);
-        typingCompleteTimeRef.current = Date.now();
-      }
-    }, 35);
-
-    return () => clearInterval(typingInterval);
-  }, [selectedMessage]);
-
-  /**
-   * Smooth Timing Coordinator:
-   * Prevents jarring flashes by evaluating required completion conditions:
-   * 1. API request is successful (apiStatus === 'success').
-   * 2. If API succeeds after delay (>= 30s or >= 90s), dismiss immediately with a smooth fade-out.
-   * 3. For fast initial loads, guarantee minimum display duration (>= 4500ms) for reading message.
-   */
+  // --------------------------------------------------------------------------
+  // 5. CRITICAL: Immediate Dismissal when API succeeds (no artificial delay)
+  // --------------------------------------------------------------------------
   useEffect(() => {
     if (apiStatus !== 'success') return;
     if (hasTriggeredDismissRef.current) return;
 
-    // Immediate dismissal with fade-out if recovering after extended delay / timeout (>= 30s)
-    const elapsed = Date.now() - startTimeRef.current;
-    if (elapsed >= 30000) {
-      hasTriggeredDismissRef.current = true;
-      setIsDismissing(true);
-      const dismissTimer = setTimeout(() => {
-        if (onReadyToDismissRef.current) {
-          onReadyToDismissRef.current();
-        }
-      }, 400);
-      return () => clearTimeout(dismissTimer);
-    }
+    hasTriggeredDismissRef.current = true;
+    setIsDismissing(true);
 
-    // Normal fast initial load coordinator
-    const evaluationInterval = setInterval(() => {
-      const now = Date.now();
-      const totalElapsed = now - startTimeRef.current;
-      const readingElapsed = typingCompleteTimeRef.current ? now - typingCompleteTimeRef.current : 0;
-
-      const condition1 = apiStatus === 'success';
-      const condition2 = totalElapsed >= 4500;
-      const condition3 = (isTypingComplete && typingCompleteTimeRef.current !== null && readingElapsed >= 2000) || totalElapsed >= 6000;
-
-      if (condition1 && condition2 && condition3 && !hasTriggeredDismissRef.current) {
-        hasTriggeredDismissRef.current = true;
-        setIsDismissing(true);
-        clearInterval(evaluationInterval);
-        setTimeout(() => {
-          if (onReadyToDismissRef.current) {
-            onReadyToDismissRef.current();
-          }
-        }, 550);
+    // Smooth visual fade transition (400ms) before unmounting
+    dismissTimerRef.current = setTimeout(() => {
+      if (onReadyToDismissRef.current) {
+        onReadyToDismissRef.current();
       }
-    }, 50);
+    }, 400);
 
-    return () => clearInterval(evaluationInterval);
-  }, [apiStatus, isTypingComplete]);
+    return () => {
+      if (dismissTimerRef.current) {
+        clearTimeout(dismissTimerRef.current);
+      }
+    };
+  }, [apiStatus]);
+
+  // Manual retry handler if visitor chooses to re-attempt after timeout
+  const handleManualRetry = () => {
+    setMessageIndex(Math.floor(Math.random() * LOADING_MESSAGES.length));
+    if (unplayedIndicesRef.current) unplayedIndicesRef.current = [];
+    setSessionKey((prev) => prev + 1);
+    setUiState('LOADING');
+    hasTriggeredDismissRef.current = false;
+    setIsDismissing(false);
+    if (onRetry) onRetry();
+  };
 
   return (
     <aside
@@ -256,53 +253,99 @@ export function LoadingScreen({
       aria-live="polite"
       aria-label="Loading portfolio"
     >
-      <div className="ai-loader-container">
-        {/* Existing Loading Animation: Typewriter message with blinking cursor */}
-        <div className="ai-loader-message-wrap">
-          <p className="ai-loader-message">
-            {displayedText}
-            <span className="ai-loader-cursor" aria-hidden="true">|</span>
-          </p>
+      {/* Top-right Dark / Light Mode Switcher */}
+      {onToggleTheme && (
+        <button
+          type="button"
+          className="loader-theme-toggle"
+          onClick={onToggleTheme}
+          aria-label={`Switch to ${activeTheme === 'dark' ? 'light' : 'dark'} mode`}
+          title={`Switch to ${activeTheme === 'dark' ? 'light' : 'dark'} mode`}
+        >
+          {activeTheme === 'dark' ? <Sun size={17} aria-hidden="true" /> : <Moon size={17} aria-hidden="true" />}
+        </button>
+      )}
+
+      {/* Subtle dark blue radial glow behind central loading content */}
+      <div className="loader-ambient-glow" aria-hidden="true" />
+
+      <div className="loader-card-content">
+        {/* Terminal Icon: 44px × 44px, blue border, dark navy background, blue outer glow, vector prompt icon (>_) */}
+        <div className="loader-terminal-icon" aria-hidden="true">
+          <Terminal size={21} strokeWidth={2.4} className="loader-terminal-svg" />
         </div>
 
-        {/* State 2 (30–89 Seconds): Server Delay Warning (No buttons) */}
+        {/* Main Heading: "Just a moment..." (bold 700, 27px, crisp white) */}
+        <h2 className="loader-main-title">Just a moment...</h2>
+
+        {/* Normal Loading View (0–89s): Typewriter, 4 Segments, Status Caption */}
+        {uiState !== 'CONNECTION_TIMEOUT' && (
+          <>
+            {/* Loading Message: 18px bright blue (#2196FF) with blinking cursor */}
+            <div className="loader-message-wrap">
+              <p className="loader-subtitle-message">
+                <span>{displayedText}</span>
+                <span className="loader-cursor" aria-hidden="true">|</span>
+              </p>
+            </div>
+
+            {/* Four-Segment Progress Indicator (42px × 5px each, progressive filling loop) */}
+            <div className="loader-segmented-bar" aria-hidden="true">
+              <span className={`loader-segment ${activeSegment >= 1 ? 'is-active' : ''}`} />
+              <span className={`loader-segment ${activeSegment >= 2 ? 'is-active' : ''}`} />
+              <span className={`loader-segment ${activeSegment >= 3 ? 'is-active' : ''}`} />
+              <span className={`loader-segment ${activeSegment >= 4 ? 'is-active' : ''}`} />
+            </div>
+
+            {/* Bottom Status Text: "Initializing experience • Please wait" (14px muted gray) */}
+            <p className="loader-caption-note">Initializing experience • Please wait</p>
+          </>
+        )}
+
+        {/* STAGE 2 (30–89s): Server Delay Warning Notice (No buttons) */}
         {uiState === 'DELAY_WARNING' && apiStatus !== 'success' && (
-          <div className="ai-loader-warning-card" role="status">
-            <p className="ai-delay-warning-text">
-              We're experiencing a slight delay in establishing a connection with the server. Please bear with us while we attempt to load the requested resources.
+          <div className="loader-delay-warning-box" role="status">
+            <p className="loader-delay-warning-text">
+              We&apos;re experiencing a slight delay in establishing a connection with the server.
+              Please bear with us while we attempt to load the requested resources.
             </p>
           </div>
         )}
 
-        {/* State 3 (After 90 Seconds): Connection Timeout Screen (ONLY TWO BUTTONS) */}
+        {/* STAGE 3 (90s+): Connection Timeout Screen (ONLY TWO BUTTONS) */}
         {uiState === 'CONNECTION_TIMEOUT' && apiStatus !== 'success' && (
-          <div className="ai-loader-timeout-card" role="alert">
-            <p className="ai-timeout-message-text">
-              The server is currently taking longer than expected to respond. You can explore my professional profile and projects while the connection is being restored.
+          <div className="loader-timeout-fallback-card" role="alert">
+            <p className="loader-timeout-message">
+              The server is currently taking longer than expected to respond.
+              You can explore my professional profile and projects while the connection is being restored.
             </p>
-
-            <div className="timeout-actions">
+            <div className="loader-fallback-buttons">
               <a
                 href={linkedinUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="timeout-btn"
+                className="button button-primary loader-action-btn"
                 aria-label="Visit LinkedIn profile (opens in a new tab)"
               >
-                <Linkedin size={18} aria-hidden="true" />
+                <Linkedin size={17} aria-hidden="true" />
                 <span>Visit LinkedIn</span>
               </a>
-
               <a
                 href={githubUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="timeout-btn"
+                className="button button-secondary loader-action-btn"
                 aria-label="Explore GitHub profile (opens in a new tab)"
               >
-                <Github size={18} aria-hidden="true" />
+                <Github size={17} aria-hidden="true" />
                 <span>Explore GitHub</span>
               </a>
+            </div>
+
+            {/* Continuous background reconnection indicator */}
+            <div className="loader-reconnect-pulse" role="status" aria-live="polite">
+              <span className="pulse-glow" style={{ width: 7, height: 7, borderRadius: '50%', background: '#2196FF', display: 'inline-block' }} />
+              <span>Connecting to server in background... Your portfolio will open automatically once connected.</span>
             </div>
           </div>
         )}
@@ -310,3 +353,5 @@ export function LoadingScreen({
     </aside>
   );
 }
+
+export default LoadingScreen;

@@ -144,22 +144,32 @@ function PortfolioApp() {
           onRetry={refetch}
           onReadyToDismiss={() => setIsLoaderFinished(true)}
           theme={theme}
+          onToggleTheme={toggleTheme}
           site={data?.site}
         />
       )}
 
       {/* 
-        Step 2: Once loading is finished, render the full portfolio shell.
+        Step 2: Main portfolio content shell.
+        Hidden with visibility: hidden until the API is available and loader finishes.
       */}
-      {isLoaderFinished && (
-        <div className="site-shell">
-          {/* Top navigation bar with menu links and dark/light mode toggle */}
-          <Navbar
-            site={data.site}
-            navigation={data.navigation}
-            theme={theme}
-            onToggleTheme={toggleTheme}
-          />
+      <div
+        className="site-shell"
+        style={{
+          visibility: (apiStatus === 'success' || isLoaderFinished) ? 'visible' : 'hidden',
+          opacity: isLoaderFinished ? 1 : 0,
+          pointerEvents: isLoaderFinished ? 'auto' : 'none',
+          transition: 'opacity 0.4s ease-out'
+        }}
+        aria-hidden={!isLoaderFinished}
+      >
+        {/* Top navigation bar with menu links and dark/light mode toggle */}
+        <Navbar
+          site={data.site}
+          navigation={data.navigation}
+          theme={theme}
+          onToggleTheme={toggleTheme}
+        />
 
           {/* Main content area containing each portfolio section */}
           <main>
@@ -228,7 +238,6 @@ function PortfolioApp() {
           {/* Website Footer with copyright and social links */}
           <Footer site={data.site} />
         </div>
-      )}
     </>
   );
 }

@@ -36,7 +36,7 @@ async function request(endpoint, options = {}) {
   // Create an AbortController so hanging or stalled connections time out
   // cleanly after 25 seconds instead of freezing indefinitely
   const controller = new AbortController();
-  const timeoutMs = options.timeout || 25000;
+  const timeoutMs = options.timeout || 60000;
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
   const config = {
