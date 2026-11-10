@@ -1,6 +1,6 @@
 /**
  * ==============================================================================
- * Key Highlights & Outcomes Section (AchievementsSection.jsx)
+ * Key Highlights & Outcomes Section (AchievementsSection.jsx) — Redesign 2.0
  * ==============================================================================
  *
  * WHAT IS THIS SECTION?
@@ -8,14 +8,14 @@
  * It summarizes Hil Patel's practical track record across dashboard building,
  * data cleaning, and end-to-end business reporting.
  *
- * WHAT DOES EACH CARD SHOW?
- * 1. Milestone Index: (e.g. 01, 02, 03)
- * 2. Visual Icon: Represents analytics, data exploration, or database architecture
- * 3. Title: Summary headline (e.g. "Interactive BI dashboards")
+ * FEATURES & PRESERVATION:
+ * 1. Milestone Index: (e.g. 01, 02, 03).
+ * 2. Visual Icon: Represents analytics, data exploration, or database architecture.
+ * 3. Title: Summary headline (e.g. "Interactive BI dashboards").
  * 4. Description: Short explanation of what was achieved and the tools used.
  */
 import React from 'react';
-import { BarChart3, Search, Database, Award } from 'lucide-react';
+import { BarChart3, Search, Database, Award, CheckCircle } from 'lucide-react';
 
 export function AchievementsSection({ achievements, sectionConfig }) {
   // Configurable headings from Django CMS
@@ -27,19 +27,19 @@ export function AchievementsSection({ achievements, sectionConfig }) {
   const renderIcon = (iconName) => {
     switch (iconName?.toLowerCase()) {
       case 'search':
-        return <Search size={20} />;
+        return <Search size={22} aria-hidden="true" />;
       case 'database':
-        return <Database size={20} />;
+        return <Database size={22} aria-hidden="true" />;
       case 'award':
-        return <Award size={20} />;
+        return <Award size={22} aria-hidden="true" />;
       case 'barchart3':
       default:
-        return <BarChart3 size={20} />;
+        return <BarChart3 size={22} aria-hidden="true" />;
     }
   };
 
   return (
-    <section className="section-block achievements-section" id="achievements">
+    <section className="section-block achievements-section" id="achievements" aria-label="Key Outcomes and Highlights">
       <div className="section-wrap">
         {/* Section Heading */}
         <div className="section-heading reveal">
@@ -55,13 +55,22 @@ export function AchievementsSection({ achievements, sectionConfig }) {
         <div className="achievement-grid reveal">
           {achievements?.length > 0 ? (
             achievements.map((item, idx) => (
-              <article key={item.id || idx}>
-                <span className="achievement-no">{item.achievement_number || `0${idx + 1}`}</span>
-                <div className="achievement-icon">
-                  {renderIcon(item.icon_name)}
+              <article className="achievement-card" key={item.id || idx}>
+                <div className="achievement-top">
+                  <span className="achievement-no">MILESTONE / {item.achievement_number || `0${idx + 1}`}</span>
+                  <div className="achievement-icon" aria-hidden="true">
+                    {renderIcon(item.icon_name)}
+                  </div>
                 </div>
+
                 <h3>{item.title}</h3>
                 <p>{item.description}</p>
+
+                <div className="achievement-footer" aria-hidden="true">
+                  <span className="achievement-pill">
+                    <CheckCircle size={12} /> Verified Outcome
+                  </span>
+                </div>
               </article>
             ))
           ) : (
@@ -75,4 +84,4 @@ export function AchievementsSection({ achievements, sectionConfig }) {
   );
 }
 
-
+export default AchievementsSection;

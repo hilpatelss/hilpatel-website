@@ -163,8 +163,8 @@ function PortfolioApp() {
 
           {/* Main content area containing each portfolio section */}
           <main>
-            {/* Hero section: Big welcoming headline and core introduction */}
-            <HeroSection site={data.site} heroMetrics={data.hero_metrics} />
+            {/* Hero section: Big welcoming headline and core introduction with bottom ticker ribbon */}
+            <HeroSection site={data.site} heroMetrics={data.hero_metrics} tickerItems={data.ticker} />
 
             {/* About Me Section */}
             {isSectionVisible('about') && (

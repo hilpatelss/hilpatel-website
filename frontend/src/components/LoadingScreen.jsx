@@ -257,6 +257,9 @@ export function LoadingScreen({
       aria-label="Loading portfolio"
     >
       <div className="ai-loader-container">
+        {/* Subtle ambient lighting orb behind loader */}
+        <div className="loader-ambient-glow" aria-hidden="true" />
+
         {/* Existing Loading Animation: Typewriter message with blinking cursor */}
         <div className="ai-loader-message-wrap">
           <p className="ai-loader-message">
