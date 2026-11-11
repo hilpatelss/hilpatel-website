@@ -1,25 +1,9 @@
 /**
  * ==============================================================================
- * Hero Landing Section (HeroSection.jsx)
+ * Hero Section Component (HeroSection.jsx)
  * ==============================================================================
- *
- * WHAT IS THIS SECTION?
- * This is the first thing a visitor sees when entering hilpatel.site!
- * It introduces Hil Patel with an Apple-style large greeting headline, explains
- * his core mission as a Data Analyst, and provides clear call-to-action buttons.
- *
- * WHAT ARE THE MAIN PARTS?
- * 1. Left Column (Copy & Actions):
- *    - Status Pill: Shows "OPEN TO ENTRY-LEVEL OPPORTUNITIES" with a green pulse dot.
- *    - Main Headline: "Hi, I'm Hil. I make data make sense."
- *    - Bio Paragraph: Brief summary of background and technical specializations.
- *    - Buttons: "Explore my work" and "Download resume" (admin-managed link).
- *    - Metric Badges: Key skills (Python · SQL · Power BI) and Education.
- * 2. Right Column (Data Art Visual):
- *    - An interactive-looking mock dashboard graphic featuring rising bar charts,
- *      an SVG trend line, and the philosophy "Curiosity → Clarity".
- * 3. Bottom Cue: "SCROLL TO EXPLORE" arrow guiding visitors down to the About section.
  */
+
 import React from 'react';
 import {
   ArrowRight,
@@ -30,23 +14,24 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { APPLE_EASE, fadeUp, scaleUp } from '../utils/animations';
+import { APPLE_EASE, fadeUp } from '../animations';
 import { useAPIReadiness } from '../context/APIReadinessContext';
+import { usePortfolio } from '../context/PortfolioContext';
 
-export function HeroSection({ site, heroMetrics }) {
+export function HeroSection() {
+  const { data } = usePortfolio();
+  const { site, hero_metrics: heroMetrics } = data;
   const { shouldAnimateHero } = useAPIReadiness();
 
-  // Resume download link: prioritizes the URL configured in Django Admin
   const resumeUrl = site?.resume_download_url || site?.resume_url || site?.hero_secondary_button_url || "/resume.pdf";
 
-  // Helper to pick the appropriate Lucide icon based on name
   const renderIcon = (iconName) => {
     switch (iconName?.toLowerCase()) {
       case 'graduationcap':
-        return <GraduationCap size={16} />;
+        return <GraduationCap size={16} aria-hidden="true" />;
       case 'code2':
       default:
-        return <Code2 size={15} />;
+        return <Code2 size={15} aria-hidden="true" />;
     }
   };
 
@@ -71,7 +56,7 @@ export function HeroSection({ site, heroMetrics }) {
         >
           {/* Eyebrow badge showing career availability status */}
           <motion.div className="eyebrow" variants={fadeUp}>
-            <span className="status-dot" /> {site?.hero_eyebrow || 'OPEN TO ENTRY-LEVEL OPPORTUNITIES'}
+            <span className="status-dot" aria-hidden="true" /> {site?.hero_eyebrow || 'OPEN TO ENTRY-LEVEL OPPORTUNITIES'}
           </motion.div>
 
           <motion.p className="hero-kicker" variants={fadeUp}>
@@ -100,7 +85,7 @@ export function HeroSection({ site, heroMetrics }) {
               href={site?.hero_primary_button_url || '#projects'}
             >
               <span>{site?.hero_primary_button_text || 'Explore my work'}</span>
-              <ArrowRight size={17} className="btn-arrow-icon" />
+              <ArrowRight size={17} className="btn-arrow-icon" aria-hidden="true" />
             </a>
             <a
               className="button button-secondary"
@@ -109,7 +94,7 @@ export function HeroSection({ site, heroMetrics }) {
               rel="noopener noreferrer"
             >
               <span>{site?.hero_secondary_button_text || 'Download resume'}</span>
-              <Download size={16} />
+              <Download size={16} aria-hidden="true" />
             </a>
           </motion.div>
 
@@ -145,14 +130,14 @@ export function HeroSection({ site, heroMetrics }) {
           <div className="visual-top">
             <span>INSIGHT / 001</span>
             <span className="live-pill">
-              <i /> ANALYTICS MODE
+              <i aria-hidden="true" /> ANALYTICS MODE
             </span>
           </div>
           <div className="visual-grid">
             <div className="visual-label">DATA → INSIGHT</div>
             {/* Rising trend chart illustration */}
             <div className="chart-area">
-              <div className="chart-y">
+              <div className="chart-y" aria-hidden="true">
                 <span>100</span>
                 <span>75</span>
                 <span>50</span>
@@ -160,12 +145,12 @@ export function HeroSection({ site, heroMetrics }) {
                 <span>0</span>
               </div>
               <div className="chart-lines">
-                <i />
-                <i />
-                <i />
-                <i />
-                <i />
-                <div className="chart-bars">
+                <i aria-hidden="true" />
+                <i aria-hidden="true" />
+                <i aria-hidden="true" />
+                <i aria-hidden="true" />
+                <i aria-hidden="true" />
+                <div className="chart-bars" aria-hidden="true">
                   <b style={{ height: "31%" }} />
                   <b style={{ height: "47%" }} />
                   <b style={{ height: "38%" }} />
@@ -203,23 +188,23 @@ export function HeroSection({ site, heroMetrics }) {
                 <strong>Curiosity → Clarity</strong>
               </div>
               <div className="visual-stamp">
-                <Sparkles size={20} />
+                <Sparkles size={20} aria-hidden="true" />
               </div>
             </div>
           </div>
           {/* Orbital background rings */}
-          <div className="hero-orbit orbit-one" />
-          <div className="hero-orbit orbit-two" />
+          <div className="hero-orbit orbit-one" aria-hidden="true" />
+          <div className="hero-orbit orbit-two" aria-hidden="true" />
         </motion.div>
 
         {/* Downward scrolling indicator link */}
-        <a className="scroll-cue" href="#about">
+        <a className="scroll-cue" href="#about" aria-label="Scroll to about section">
           <span>SCROLL TO EXPLORE</span>
-          <ChevronDown size={15} />
+          <ChevronDown size={15} aria-hidden="true" />
         </a>
       </div>
     </section>
   );
 }
 
-
+export default HeroSection;

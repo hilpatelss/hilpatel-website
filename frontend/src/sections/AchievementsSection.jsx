@@ -2,46 +2,37 @@
  * ==============================================================================
  * Key Highlights & Outcomes Section (AchievementsSection.jsx)
  * ==============================================================================
- *
- * WHAT IS THIS SECTION?
- * This section highlights tangible business outcomes: "Work that turns into outcomes."
- * It summarizes Hil Patel's practical track record across dashboard building,
- * data cleaning, and end-to-end business reporting.
- *
- * WHAT DOES EACH CARD SHOW?
- * 1. Milestone Index: (e.g. 01, 02, 03)
- * 2. Visual Icon: Represents analytics, data exploration, or database architecture
- * 3. Title: Summary headline (e.g. "Interactive BI dashboards")
- * 4. Description: Short explanation of what was achieved and the tools used.
  */
+
 import React from 'react';
 import { BarChart3, Search, Database, Award } from 'lucide-react';
+import { usePortfolio } from '../context/PortfolioContext';
 
-export function AchievementsSection({ achievements, sectionConfig }) {
-  // Configurable headings from Django CMS
+export function AchievementsSection({ sectionConfig }) {
+  const { data } = usePortfolio();
+  const { achievements } = data;
+
   const indexLabel = sectionConfig?.index_label || "06 / HIGHLIGHTS";
   const titleLine1 = sectionConfig?.title_line1 || "Work that turns";
   const titleLine2 = sectionConfig?.title_line2 || "into outcomes.";
 
-  // Helper to pick the matching icon for each achievement card
   const renderIcon = (iconName) => {
     switch (iconName?.toLowerCase()) {
       case 'search':
-        return <Search size={20} />;
+        return <Search size={20} aria-hidden="true" />;
       case 'database':
-        return <Database size={20} />;
+        return <Database size={20} aria-hidden="true" />;
       case 'award':
-        return <Award size={20} />;
+        return <Award size={20} aria-hidden="true" />;
       case 'barchart3':
       default:
-        return <BarChart3 size={20} />;
+        return <BarChart3 size={20} aria-hidden="true" />;
     }
   };
 
   return (
     <section className="section-block achievements-section" id="achievements">
       <div className="section-wrap">
-        {/* Section Heading */}
         <div className="section-heading reveal">
           <span className="section-index">{indexLabel}</span>
           <h2>
@@ -51,7 +42,6 @@ export function AchievementsSection({ achievements, sectionConfig }) {
           </h2>
         </div>
 
-        {/* Milestone Cards Grid */}
         <div className="achievement-grid reveal">
           {achievements?.length > 0 ? (
             achievements.map((item, idx) => (
@@ -66,7 +56,7 @@ export function AchievementsSection({ achievements, sectionConfig }) {
             ))
           ) : (
             <div className="empty-state" style={{ padding: '2rem 0', opacity: 0.7, gridColumn: '1 / -1' }}>
-              <p>No achievements listed at this time.</p>
+              <p>Key highlights are loading...</p>
             </div>
           )}
         </div>
@@ -75,4 +65,4 @@ export function AchievementsSection({ achievements, sectionConfig }) {
   );
 }
 
-
+export default AchievementsSection;

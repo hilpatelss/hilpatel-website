@@ -1,0 +1,96 @@
+/**
+ * ==============================================================================
+ * Design System Tokens (tokens.css)
+ * ==============================================================================
+ */
+
+:root {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Helvetica Neue", Arial, sans-serif;
+  color-scheme: light;
+
+  /* Apple Light Mode Palette */
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #F8FAFC;
+  --bg-tertiary: #F1F5F9;
+
+  --text-primary: #0F172A;
+  --text-secondary: #64748B;
+  
+  --accent: #0071E3;
+  --accent-hover: #0077ED;
+
+  --border: #E2E8F0;
+  --card-bg: #FFFFFF;
+  --input-bg: #F8FAFC;
+
+  /* Aliases for backwards compatibility */
+  --bg: var(--bg-primary);
+  --surface: var(--card-bg);
+  --surface2: var(--bg-secondary);
+  --surface3: var(--bg-tertiary);
+  --text: var(--text-primary);
+  --muted: var(--text-secondary);
+  --line: var(--border);
+  --accent2: var(--accent-hover);
+  --shadow: 0 4px 20px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02);
+  --mono: "SF Mono", "DM Mono", Menlo, Monaco, Consolas, monospace;
+  --radius: 18px;
+}
+
+:root[data-theme="light"],
+[data-theme="light"] {
+  color-scheme: light;
+
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #F8FAFC;
+  --bg-tertiary: #F1F5F9;
+
+  --text-primary: #0F172A;
+  --text-secondary: #64748B;
+
+  --accent: #0071E3;
+  --accent-hover: #0077ED;
+
+  --border: #E2E8F0;
+  --card-bg: #FFFFFF;
+  --input-bg: #F8FAFC;
+
+  --bg: var(--bg-primary);
+  --surface: var(--card-bg);
+  --surface2: var(--bg-secondary);
+  --surface3: var(--bg-tertiary);
+  --text: var(--text-primary);
+  --muted: var(--text-secondary);
+  --line: var(--border);
+  --accent2: var(--accent-hover);
+  --shadow: 0 4px 20px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+:root[data-theme="dark"],
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg-primary: #030507;
+  --bg-secondary: #0C1017;
+  --bg-tertiary: #121824;
+
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8;
+
+  --accent: #2196FF;
+  --accent-hover: #40A9FF;
+
+  --border: #1E293B;
+  --card-bg: #0C1017;
+  --input-bg: #121824;
+
+  --bg: var(--bg-primary);
+  --surface: var(--card-bg);
+  --surface2: var(--bg-secondary);
+  --surface3: var(--bg-tertiary);
+  --text: var(--text-primary);
+  --muted: var(--text-secondary);
+  --line: var(--border);
+  --accent2: var(--accent-hover);
+  --shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
+}

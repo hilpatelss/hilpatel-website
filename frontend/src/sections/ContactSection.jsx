@@ -1,63 +1,44 @@
 /**
  * ==============================================================================
- * Contact & Inquiry Section (ContactSection.jsx)
+ * Contact Section Component (ContactSection.jsx)
  * ==============================================================================
- *
- * WHAT IS THIS SECTION?
- * This is where visitors, recruiters, and hiring managers can reach out to Hil Patel.
- *
- * WHAT FEATURES DOES IT HAVE?
- * 1. Direct Contact Details (Left Column):
- *    - Clickable email link (`hilpatelss@gmail.com`)
- *    - LinkedIn and GitHub profile links
- *    - Career status badge ("Open to entry-level roles")
- * 2. Interactive Message Form (Right Column):
- *    - Form fields for Name, Email, and Message
- *    - Invisible "Honeypot" anti-spam trap (catches automated spam bots without
- *      frustrating humans with puzzle CAPTCHAs!)
- *    - Live submission states: disables the button while sending, and displays
- *      friendly confirmation or error feedback.
  */
+
 import React, { useState } from 'react';
 import {
   Linkedin,
   Github,
-  BriefcaseBusiness,
   Send,
-  ArrowRight,
   ExternalLink,
+  CheckCircle2,
+  AlertCircle,
+  Loader2,
 } from 'lucide-react';
 import { api } from '../services/api';
+import { usePortfolio } from '../context/PortfolioContext';
 
-export function ContactSection({ site, sectionConfig }) {
-  // Form input field state (name, email, message, and the secret honeypot 'website')
+export function ContactSection({ sectionConfig }) {
+  const { data } = usePortfolio();
+  const { site } = data;
+
   const [form, setForm] = useState({ name: '', email: '', message: '', website: '' });
-  // Form submission status: 'idle' | 'sending' | 'success' | 'error'
-  const [formState, setFormState] = useState('idle');
-  // Error message text if submission fails
+  const [formState, setFormState] = useState('idle'); // 'idle' | 'sending' | 'success' | 'error'
   const [errorMessage, setErrorMessage] = useState('');
 
-  // Configurable headings from Django CMS
   const indexLabel = sectionConfig?.index_label || "07 / CONTACT";
   const titleLine1 = sectionConfig?.title_line1 || "Have a role or";
   const titleLine2 = sectionConfig?.title_line2 || "project in mind";
 
-  /**
-   * Handles contact form submission when the user clicks "Send message".
-   */
   async function handleSubmit(e) {
-    e.preventDefault(); // Prevents the browser from reloading the page
+    e.preventDefault();
     setFormState('sending');
     setErrorMessage('');
 
     try {
-      // Send the inquiry to the Django backend
       await api.submitContact(form);
-      // Show success message and clear the form fields
       setFormState('success');
       setForm({ name: '', email: '', message: '', website: '' });
     } catch (err) {
-      // If an error occurred, extract any validation details sent by Django
       setFormState('error');
       if (err.data?.details) {
         const detailsList = Object.entries(err.data.details)
@@ -75,7 +56,6 @@ export function ContactSection({ site, sectionConfig }) {
   return (
     <section className="contact-section" id="contact">
       <div className="section-wrap contact-layout">
-        {/* Left Column: Direct email & Social profile links */}
         <div className="contact-copy reveal">
           <span className="section-index">{indexLabel}</span>
           <h2>
@@ -89,128 +69,119 @@ export function ContactSection({ site, sectionConfig }) {
 
           {site?.email && (
             <a className="contact-email" href={`mailto:${site.email}`}>
-              {site.email} <ExternalLink size={14} />
+              {site.email} <ExternalLink size={14} aria-hidden="true" />
             </a>
           )}
 
           <div className="contact-socials">
             {site?.linkedin_url && (
-              <a href={site.linkedin_url} target="_blank" rel="noreferrer">
-                <Linkedin size={18} /> LinkedIn
+              <a href={site.linkedin_url} target="_blank" rel="noreferrer" aria-label="LinkedIn profile">
+                <Linkedin size={18} aria-hidden="true" /> LinkedIn
               </a>
             )}
             {site?.github_url && (
-              <a href={site.github_url} target="_blank" rel="noreferrer">
-                <Github size={18} /> GitHub
+              <a href={site.github_url} target="_blank" rel="noreferrer" aria-label="GitHub profile">
+                <Github size={18} aria-hidden="true" /> GitHub
               </a>
             )}
-            <span>
-              <BriefcaseBusiness size={18} /> {site?.contact_availability_status || 'Open to entry-level roles'}
+          </div>
+
+          <div className="contact-status-card">
+            <span className="live-pill">
+              <i aria-hidden="true" /> STATUS
             </span>
+            <strong>{site?.contact_availability_status || 'Open to entry-level roles'}</strong>
+            <small>{site?.location || 'Gujarat, India'} · Remote / Hybrid</small>
           </div>
         </div>
 
-        {/* Right Column: Contact Inquiry Form */}
-        <form className="contact-form reveal" onSubmit={handleSubmit}>
-          <div className="form-title">
-            <span>LET'S START A CONVERSATION</span>
-            <Send size={18} />
-          </div>
+        <div className="contact-form-wrap reveal">
+          <form className="contact-form" onSubmit={handleSubmit} noValidate>
+            <span className="form-title">SEND AN INQUIRY</span>
 
-          {/* 
-            ANTI-SPAM HONEYPOT TRAP:
-            This input is hidden from human visitors with display:none.
-            Automated spam bots fill in every field they see. If this field contains
-            any value when received by Django, the server knows it's a bot and drops it!
-          */}
-          <div style={{ display: 'none' }} aria-hidden="true">
-            <label htmlFor="hp_website">Leave this field blank</label>
+            {/* Anti-spam honeypot */}
             <input
-              id="hp_website"
+              type="text"
               name="website"
-              tabIndex="-1"
-              autoComplete="off"
               value={form.website}
               onChange={(e) => setForm({ ...form, website: e.target.value })}
+              style={{ display: 'none' }}
+              tabIndex="-1"
+              autoComplete="off"
             />
-          </div>
 
-          {/* Name Field */}
-          <label>
-            Your name
-            <input
-              required
-              minLength={2}
-              maxLength={120}
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              placeholder="Name"
-              disabled={formState === 'sending'}
-            />
-          </label>
+            <label>
+              <span>NAME</span>
+              <input
+                type="text"
+                required
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                placeholder="Your name"
+                disabled={formState === 'sending'}
+              />
+            </label>
 
-          {/* Email Field */}
-          <label>
-            Email address
-            <input
-              required
-              type="email"
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              placeholder="you@example.com"
-              disabled={formState === 'sending'}
-            />
-          </label>
+            <label>
+              <span>EMAIL</span>
+              <input
+                type="email"
+                required
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                placeholder="your.email@example.com"
+                disabled={formState === 'sending'}
+              />
+            </label>
 
-          {/* Message Textarea */}
-          <label>
-            Message
-            <textarea
-              required
-              minLength={10}
-              maxLength={4000}
-              rows={4}
-              value={form.message}
-              onChange={(e) => setForm({ ...form, message: e.target.value })}
-              placeholder="What would you like to discuss?"
-              disabled={formState === 'sending'}
-            />
-          </label>
+            <label>
+              <span>MESSAGE</span>
+              <textarea
+                required
+                rows="4"
+                value={form.message}
+                onChange={(e) => setForm({ ...form, message: e.target.value })}
+                placeholder="Tell me about the role, project, or question..."
+                disabled={formState === 'sending'}
+              />
+            </label>
 
-          {/* Submit Button */}
-          <button
-            className="button button-primary form-submit"
-            type="submit"
-            disabled={formState === 'sending'}
-          >
-            {formState === 'sending' ? 'Sending…' : 'Send message'}{' '}
-            <ArrowRight size={16} />
-          </button>
+            {formState === 'success' && (
+              <div className="form-feedback success" role="alert">
+                <CheckCircle2 size={18} aria-hidden="true" />
+                <span>Message sent successfully! I will reply shortly.</span>
+              </div>
+            )}
 
-          {/* Confirmation Alert on Success */}
-          {formState === 'success' && (
-            <p className="form-feedback success">
-              Message sent successfully! Thanks for reaching out.
-            </p>
-          )}
+            {formState === 'error' && (
+              <div className="form-feedback error" role="alert">
+                <AlertCircle size={18} aria-hidden="true" />
+                <span>{errorMessage || 'Failed to send message. Please email directly.'}</span>
+              </div>
+            )}
 
-          {/* Error Notice on Failure */}
-          {formState === 'error' && (
-            <p className="form-feedback error">
-              {errorMessage || (
+            <button
+              type="submit"
+              className="button button-primary"
+              disabled={formState === 'sending' || !form.name || !form.email || !form.message}
+            >
+              {formState === 'sending' ? (
                 <>
-                  The contact API is not reachable yet. Please email{' '}
-                  <a href={`mailto:${site?.email || 'hilpatelss@gmail.com'}`}>
-                    {site?.email || 'hilpatelss@gmail.com'}
-                  </a>.
+                  <Loader2 size={16} className="spin" aria-hidden="true" />
+                  <span>Sending...</span>
+                </>
+              ) : (
+                <>
+                  <span>Send message</span>
+                  <Send size={15} aria-hidden="true" />
                 </>
               )}
-            </p>
-          )}
-        </form>
+            </button>
+          </form>
+        </div>
       </div>
     </section>
   );
 }
 
-
+export default ContactSection;
