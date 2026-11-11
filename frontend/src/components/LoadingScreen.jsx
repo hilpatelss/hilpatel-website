@@ -89,6 +89,7 @@ export function LoadingScreen({
   error = null,
   onRetry,
   onReadyToDismiss,
+  disableDismissal = false,
   theme,
   onToggleTheme,
   site,
@@ -214,8 +215,10 @@ export function LoadingScreen({
 
   // --------------------------------------------------------------------------
   // 5. CRITICAL: Immediate Dismissal when API succeeds (no artificial delay)
+  // Suppressed if disableDismissal is true or onReadyToDismiss is not provided
   // --------------------------------------------------------------------------
   useEffect(() => {
+    if (disableDismissal || !onReadyToDismissRef.current) return;
     if (apiStatus !== 'success') return;
     if (hasTriggeredDismissRef.current) return;
 
@@ -234,7 +237,7 @@ export function LoadingScreen({
         clearTimeout(dismissTimerRef.current);
       }
     };
-  }, [apiStatus]);
+  }, [apiStatus, disableDismissal]);
 
   // Manual retry handler if visitor chooses to re-attempt after timeout
   const handleManualRetry = () => {

@@ -33,6 +33,13 @@ import {
 
 import './styles/styles.css';
 
+/**
+ * Global control: Whether the main portfolio website shell is rendered.
+ * Set to false per user instruction ("don't display main page") to keep the loading
+ * screen permanently visible with continuous 10s message cycling, animations, and theme switcher.
+ */
+const SHOW_MAIN_PAGE = false;
+
 function PortfolioContent() {
   const { theme, toggleTheme } = useTheme();
   const readiness = useAPIReadiness();
@@ -40,9 +47,9 @@ function PortfolioContent() {
 
   const [isLoaderFinished, setIsLoaderFinished] = useState(false);
 
-  // 1. Lock document scrolling while loading screen is visible
+  // 1. Lock document scrolling while loading screen is visible or main page suppressed
   useEffect(() => {
-    if (!isLoaderFinished) {
+    if (!isLoaderFinished || !SHOW_MAIN_PAGE) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
@@ -115,75 +122,82 @@ function PortfolioContent() {
   return (
     <>
       {/* Step 1: Loading Screen overlay (Reference Design) */}
-      {!isLoaderFinished && (
+      {(!isLoaderFinished || !SHOW_MAIN_PAGE) && (
         <LoadingScreen
           apiStatus={apiStatus}
           error={error}
           onRetry={handleRetry}
-          onReadyToDismiss={() => {
-            setIsLoaderFinished(true);
-            readiness.triggerEntranceSequence();
-          }}
+          disableDismissal={!SHOW_MAIN_PAGE}
+          onReadyToDismiss={
+            SHOW_MAIN_PAGE
+              ? () => {
+                  setIsLoaderFinished(true);
+                  readiness.triggerEntranceSequence();
+                }
+              : undefined
+          }
           theme={theme}
           onToggleTheme={toggleTheme}
           site={data?.site}
         />
       )}
 
-      {/* Step 2: Main Website Shell */}
-      <div
-        className="site-shell"
-        style={{
-          visibility: (readiness.isApiReady || isLoaderFinished) ? 'visible' : 'hidden',
-          opacity: isLoaderFinished ? 1 : 0,
-          pointerEvents: isLoaderFinished ? 'auto' : 'none',
-          transition: 'opacity 0.4s ease-out',
-        }}
-        aria-hidden={!isLoaderFinished}
-      >
-        <MainLayout>
-          {/* 1. Hero Section with dynamic readiness entrance animation */}
-          <HeroSection />
+      {/* Step 2: Main Website Shell (Suppressed when SHOW_MAIN_PAGE is false) */}
+      {SHOW_MAIN_PAGE && (
+        <div
+          className="site-shell"
+          style={{
+            visibility: readiness.isApiReady || isLoaderFinished ? 'visible' : 'hidden',
+            opacity: isLoaderFinished ? 1 : 0,
+            pointerEvents: isLoaderFinished ? 'auto' : 'none',
+            transition: 'opacity 0.4s ease-out',
+          }}
+          aria-hidden={!isLoaderFinished}
+        >
+          <MainLayout>
+            {/* 1. Hero Section with dynamic readiness entrance animation */}
+            <HeroSection />
 
-          {/* 2. Core skills ticker ribbon */}
-          {data.ticker?.length > 0 && <TickerSection />}
+            {/* 2. Core skills ticker ribbon */}
+            {data.ticker?.length > 0 && <TickerSection />}
 
-          {/* 3. About Me Section */}
-          {isSectionVisible('about') && (
-            <AboutSection sectionConfig={sectionConfigs['about']} />
-          )}
+            {/* 3. About Me Section */}
+            {isSectionVisible('about') && (
+              <AboutSection sectionConfig={sectionConfigs['about']} />
+            )}
 
-          {/* 4. Featured Projects Section */}
-          {isSectionVisible('projects') && (
-            <ProjectsSection sectionConfig={sectionConfigs['projects']} />
-          )}
+            {/* 4. Featured Projects Section */}
+            {isSectionVisible('projects') && (
+              <ProjectsSection sectionConfig={sectionConfigs['projects']} />
+            )}
 
-          {/* 5. Technical Skills Toolkit Section */}
-          {isSectionVisible('skills') && (
-            <SkillsSection sectionConfig={sectionConfigs['skills']} />
-          )}
+            {/* 5. Technical Skills Toolkit Section */}
+            {isSectionVisible('skills') && (
+              <SkillsSection sectionConfig={sectionConfigs['skills']} />
+            )}
 
-          {/* 6. Education Timeline Section */}
-          {isSectionVisible('education') && (
-            <EducationSection sectionConfig={sectionConfigs['education']} />
-          )}
+            {/* 6. Education Timeline Section */}
+            {isSectionVisible('education') && (
+              <EducationSection sectionConfig={sectionConfigs['education']} />
+            )}
 
-          {/* 7. Professional Certifications Section */}
-          {isSectionVisible('certifications') && (
-            <CertificationsSection sectionConfig={sectionConfigs['certifications']} />
-          )}
+            {/* 7. Professional Certifications Section */}
+            {isSectionVisible('certifications') && (
+              <CertificationsSection sectionConfig={sectionConfigs['certifications']} />
+            )}
 
-          {/* 8. Highlights & Milestones Section */}
-          {isSectionVisible('achievements') && (
-            <AchievementsSection sectionConfig={sectionConfigs['achievements']} />
-          )}
+            {/* 8. Highlights & Milestones Section */}
+            {isSectionVisible('achievements') && (
+              <AchievementsSection sectionConfig={sectionConfigs['achievements']} />
+            )}
 
-          {/* 9. Contact Inquiry Section */}
-          {isSectionVisible('contact') && (
-            <ContactSection sectionConfig={sectionConfigs['contact']} />
-          )}
-        </MainLayout>
-      </div>
+            {/* 9. Contact Inquiry Section */}
+            {isSectionVisible('contact') && (
+              <ContactSection sectionConfig={sectionConfigs['contact']} />
+            )}
+          </MainLayout>
+        </div>
+      )}
     </>
   );
 }
