@@ -19,6 +19,7 @@
  *    - An accented card showcasing his core mission with an icon.
  */
 import React from 'react';
+import { AnimatedNumber } from '../components/AnimatedNumber';
 import {
   Linkedin,
   Github,
@@ -127,12 +128,9 @@ export function AboutSection({ site, stats, sectionConfig }) {
                   key={stat.id || idx}
                   className={`stat-card ${isAccent ? 'stat-card-accent' : ''}`}
                 >
-                  {/* If the stat has a number (like "03" or "05+"), show big text */}
+                  {/* If the stat has a number (like "03" or "05+"), show animated counting number */}
                   {hasValidNumber ? (
-                    <span className="stat-number">
-                      {stat.number.replace('+', '')}
-                      {stat.number.includes('+') && <span className="stat-plus">+</span>}
-                    </span>
+                    <AnimatedNumber value={stat.number} className="stat-number" />
                   ) : (
                     /* Otherwise, show a nice analytics icon */
                     <span className="stat-symbol">

@@ -20,12 +20,14 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
+import { APIReadinessProvider, useAPIReadiness } from './context/APIReadinessContext';
 import { usePortfolioData } from './hooks/usePortfolioData';
 import { logVisitorVisit } from './services/visitorLog';
 import { LoadingScreen } from './components/LoadingScreen';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { HeroSection } from './sections/HeroSection';
+import { TickerSection } from './sections/TickerSection';
 import { AboutSection } from './sections/AboutSection';
 import { ProjectsSection } from './sections/ProjectsSection';
 import { SkillsSection } from './sections/SkillsSection';
@@ -39,8 +41,11 @@ function PortfolioApp() {
   // Theme state: allows switching between Apple-style light and dark modes
   const { theme, toggleTheme } = useTheme();
 
-  // Custom hook that pulls all portfolio data (projects, skills, about copy) from Django
-  const { data, loading, error, apiStatus, refetch, applyDesignTokens } = usePortfolioData();
+  // Centralized Application Readiness controller
+  const readiness = useAPIReadiness();
+
+  // Custom hook that pulls all portfolio data from Django with API readiness hooks
+  const { data, loading, error, apiStatus, refetch, applyDesignTokens } = usePortfolioData(readiness);
 
   // State to track if the introductory loading animation is completely done
   const [isLoaderFinished, setIsLoaderFinished] = useState(false);
@@ -94,32 +99,30 @@ function PortfolioApp() {
   // --------------------------------------------------------------------------
   // EFFECT 3: Scroll Reveal Animations
   // --------------------------------------------------------------------------
-  // Once the loading screen disappears, this watches for elements with the class
-  // 'reveal'. When the user scrolls down and an element enters the screen,
+  // Once the loading screen disappears and entrance sequence begins,
+  // this watches for elements with the class 'reveal'. When the user scrolls down,
   // we add the 'is-visible' class to smoothly fade it in.
   useEffect(() => {
-    if (!isLoaderFinished) return;
+    if (!isLoaderFinished && !readiness.isInteractive) return;
 
-    // IntersectionObserver is a browser tool that efficiently detects when an element is on screen
+    // IntersectionObserver detects when an element is on screen
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             entry.target.classList.add('is-visible');
-            // Once it has animated in, stop observing it to save computer memory
             observer.unobserve(entry.target);
           }
         });
       },
-      { threshold: 0.12 } // Triggers when 12% of the element is visible in the viewport
+      { threshold: 0.12 }
     );
 
     const elements = document.querySelectorAll('.reveal');
     elements.forEach((el) => observer.observe(el));
 
-    // Cleanup observer if the component unmounts
     return () => observer.disconnect();
-  }, [isLoaderFinished, data]);
+  }, [isLoaderFinished, readiness.isInteractive, data]);
 
   // --------------------------------------------------------------------------
   // MEMOIZED SECTION CONFIGURATION
@@ -138,9 +141,13 @@ function PortfolioApp() {
 
   // Helper function to check if a specific section should be displayed
   const isSectionVisible = (key) => {
-    // If the section isn't mentioned in the backend config, default to showing it
     if (!sectionConfigs[key]) return true;
     return sectionConfigs[key].is_visible !== false;
+  };
+
+  const handleRetry = () => {
+    readiness.resetReadiness();
+    refetch();
   };
 
   return (
@@ -153,8 +160,11 @@ function PortfolioApp() {
         <LoadingScreen
           apiStatus={apiStatus}
           error={error}
-          onRetry={refetch}
-          onReadyToDismiss={() => setIsLoaderFinished(true)}
+          onRetry={handleRetry}
+          onReadyToDismiss={() => {
+            setIsLoaderFinished(true);
+            readiness.triggerEntranceSequence();
+          }}
           theme={theme}
           onToggleTheme={toggleTheme}
           site={data?.site}
@@ -168,7 +178,7 @@ function PortfolioApp() {
       <div
         className="site-shell"
         style={{
-          visibility: (apiStatus === 'success' || isLoaderFinished) ? 'visible' : 'hidden',
+          visibility: (readiness.isApiReady || apiStatus === 'success' || isLoaderFinished) ? 'visible' : 'hidden',
           opacity: isLoaderFinished ? 1 : 0,
           pointerEvents: isLoaderFinished ? 'auto' : 'none',
           transition: 'opacity 0.4s ease-out'
@@ -183,21 +193,26 @@ function PortfolioApp() {
           onToggleTheme={toggleTheme}
         />
 
-          {/* Main content area containing each portfolio section */}
-          <main>
-            {/* Hero section: Big welcoming headline and core introduction */}
-            <HeroSection site={data.site} heroMetrics={data.hero_metrics} />
+        {/* Main content area containing each portfolio section */}
+        <main>
+          {/* Hero section: Big welcoming headline and core introduction */}
+          <HeroSection site={data.site} heroMetrics={data.hero_metrics} />
 
-            {/* About Me Section */}
-            {isSectionVisible('about') && (
-              <AboutSection
-                site={data.site}
-                stats={data.about_stats}
-                sectionConfig={sectionConfigs['about']}
-              />
-            )}
+          {/* Core tools ticker ribbon */}
+          {data.ticker?.length > 0 && (
+            <TickerSection items={data.ticker} />
+          )}
 
-            {/* Featured Projects Section */}
+          {/* About Me Section */}
+          {isSectionVisible('about') && (
+            <AboutSection
+              site={data.site}
+              stats={data.about_stats}
+              sectionConfig={sectionConfigs['about']}
+            />
+          )}
+
+          {/* Featured Projects Section */}
             {isSectionVisible('projects') && (
               <ProjectsSection
                 projects={data.projects}
@@ -262,7 +277,9 @@ function PortfolioApp() {
 export function App() {
   return (
     <ThemeProvider>
-      <PortfolioApp />
+      <APIReadinessProvider>
+        <PortfolioApp />
+      </APIReadinessProvider>
     </ThemeProvider>
   );
 }

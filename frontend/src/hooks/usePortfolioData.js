@@ -216,7 +216,7 @@ const DEFAULT_FALLBACKS = {
   ],
 };
 
-export function usePortfolioData() {
+export function usePortfolioData(readiness = null) {
   // Holds the active portfolio content (starts with defaults, then updates with backend data)
   const [data, setData] = useState(DEFAULT_FALLBACKS);
   // Tracks whether the initial fetch is currently in progress
@@ -360,6 +360,9 @@ export function usePortfolioData() {
     setLoading(true);
     setError(null);
     setApiStatus('pending');
+    if (readiness?.markApiLoading) {
+      readiness.markApiLoading();
+    }
 
     try {
       // Parallel fetch of bootstrap and content
@@ -386,6 +389,10 @@ export function usePortfolioData() {
       // If a retry or newer fetch was triggered in the meantime, discard stale response
       if (currentRequestId !== requestIdRef.current) {
         return;
+      }
+
+      if (readiness?.markApiValidating) {
+        readiness.markApiValidating();
       }
 
       const resolved = { ...DEFAULT_FALLBACKS };
@@ -480,12 +487,18 @@ export function usePortfolioData() {
         console.warn("API initialization failed:", failReason);
         setError(failReason);
         setApiStatus('error');
+        if (readiness?.markApiError) {
+          readiness.markApiError(failReason);
+        }
         // Automatically schedule refetch attempt so that when the API becomes available,
         // live data is retrieved and the loading/timeout screen is immediately dismissed!
         scheduleRetry(4000);
       } else {
         setError(null);
         setApiStatus('success');
+        if (readiness?.markApiReady) {
+          readiness.markApiReady();
+        }
         clearRetry();
       }
     } catch (err) {
@@ -493,6 +506,9 @@ export function usePortfolioData() {
       console.warn("Failed to reach Django API, using presentation fallbacks:", err);
       setError(err);
       setApiStatus('error');
+      if (readiness?.markApiError) {
+        readiness.markApiError(err);
+      }
       // Automatically schedule refetch attempt on network error
       scheduleRetry(4000);
     } finally {

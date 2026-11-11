@@ -31,8 +31,11 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { APPLE_EASE, fadeUp, scaleUp } from '../utils/animations';
+import { useAPIReadiness } from '../context/APIReadinessContext';
 
 export function HeroSection({ site, heroMetrics }) {
+  const { shouldAnimateHero } = useAPIReadiness();
+
   // Resume download link: prioritizes the URL configured in Django Admin
   const resumeUrl = site?.resume_download_url || site?.resume_url || site?.hero_secondary_button_url || "/resume.pdf";
 
@@ -57,7 +60,7 @@ export function HeroSection({ site, heroMetrics }) {
         <motion.div
           className="hero-copy"
           initial="hidden"
-          animate="visible"
+          animate={shouldAnimateHero ? "visible" : "hidden"}
           variants={{
             hidden: { opacity: 0 },
             visible: {
@@ -136,7 +139,7 @@ export function HeroSection({ site, heroMetrics }) {
         <motion.div
           className="hero-visual"
           initial={{ opacity: 0, scale: 0.94, y: 18 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
+          animate={shouldAnimateHero ? { opacity: 1, scale: 1, y: 0 } : { opacity: 0, scale: 0.94, y: 18 }}
           transition={{ duration: 0.75, delay: 0.25, ease: APPLE_EASE }}
         >
           <div className="visual-top">
