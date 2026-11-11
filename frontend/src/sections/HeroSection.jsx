@@ -29,6 +29,8 @@ import {
   Sparkles,
   ChevronDown,
 } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { APPLE_EASE, fadeUp, scaleUp } from '../utils/animations';
 
 export function HeroSection({ site, heroMetrics }) {
   // Resume download link: prioritizes the URL configured in Django Admin
@@ -47,38 +49,55 @@ export function HeroSection({ site, heroMetrics }) {
 
   return (
     <section className="hero-section" id="home">
+      {/* Subtle ambient animated gradient glow */}
+      <div className="hero-ambient-glow" aria-hidden="true" />
+
       <div className="hero section-wrap">
         {/* Left Column: Headline, Bio text, Action buttons, and Key metric pills */}
-        <div className="hero-copy reveal">
+        <motion.div
+          className="hero-copy"
+          initial="hidden"
+          animate="visible"
+          variants={{
+            hidden: { opacity: 0 },
+            visible: {
+              opacity: 1,
+              transition: { staggerChildren: 0.08, delayChildren: 0.05 },
+            },
+          }}
+        >
           {/* Eyebrow badge showing career availability status */}
-          <div className="eyebrow">
+          <motion.div className="eyebrow" variants={fadeUp}>
             <span className="status-dot" /> {site?.hero_eyebrow || 'OPEN TO ENTRY-LEVEL OPPORTUNITIES'}
-          </div>
+          </motion.div>
 
-          <p className="hero-kicker">
+          <motion.p className="hero-kicker" variants={fadeUp}>
             {site?.hero_kicker || 'DATA ANALYTICS · BUSINESS INTELLIGENCE · PYTHON'}
-          </p>
+          </motion.p>
 
-          {/* Main big headline */}
-          <h1>
-            {site?.hero_headline_greeting || "Hi, I'm Hil."}
+          {/* Main big headline with staggered line slide-up */}
+          <motion.h1 variants={fadeUp}>
+            <span className="hero-greeting">{site?.hero_headline_greeting || "Hi, I'm Hil."}</span>
             <br />
             <span>{site?.hero_headline_line1 || 'I make data'}</span>
             <br />
-            {site?.hero_headline_line2 || 'make sense'}
+            <span className="hero-title-accent">{site?.hero_headline_line2 || 'make sense'}</span>
             <span className="accent-dot">.</span>
-          </h1>
+          </motion.h1>
 
           {/* Intro summary description */}
-          <p className="hero-description">{site?.summary_text}</p>
+          <motion.p className="hero-description" variants={fadeUp}>
+            {site?.summary_text}
+          </motion.p>
           
           {/* Call-to-action buttons */}
-          <div className="hero-buttons">
+          <motion.div className="hero-buttons" variants={fadeUp}>
             <a
               className="button button-primary"
               href={site?.hero_primary_button_url || '#projects'}
             >
-              {site?.hero_primary_button_text || 'Explore my work'} <ArrowRight size={17} />
+              <span>{site?.hero_primary_button_text || 'Explore my work'}</span>
+              <ArrowRight size={17} className="btn-arrow-icon" />
             </a>
             <a
               className="button button-secondary"
@@ -86,34 +105,40 @@ export function HeroSection({ site, heroMetrics }) {
               target="_blank"
               rel="noopener noreferrer"
             >
-              {site?.hero_secondary_button_text || 'Download resume'} <Download size={16} />
+              <span>{site?.hero_secondary_button_text || 'Download resume'}</span>
+              <Download size={16} />
             </a>
-          </div>
+          </motion.div>
 
           {/* Technology pills / tags */}
-          <div className="hero-meta">
+          <motion.div className="hero-meta" variants={fadeUp}>
             {heroMetrics?.length > 0 ? (
               heroMetrics.map((metric, idx) => (
-                <span key={idx}>
+                <span key={idx} className="hero-meta-item">
                   <span className="meta-icon">{renderIcon(metric.icon_name)}</span>{' '}
                   {metric.text}
                 </span>
               ))
             ) : (
               <>
-                <span>
+                <span className="hero-meta-item">
                   <span className="meta-icon"><Code2 size={15} /></span> Python · SQL · Power BI
                 </span>
-                <span>
+                <span className="hero-meta-item">
                   <span className="meta-icon"><GraduationCap size={16} /></span> Computer Engineering · 2026
                 </span>
               </>
             )}
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
         {/* Right Column: Illustrative Data Analytics Graphic */}
-        <div className="hero-visual reveal">
+        <motion.div
+          className="hero-visual"
+          initial={{ opacity: 0, scale: 0.94, y: 18 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 0.75, delay: 0.25, ease: APPLE_EASE }}
+        >
           <div className="visual-top">
             <span>INSIGHT / 001</span>
             <span className="live-pill">
@@ -182,7 +207,7 @@ export function HeroSection({ site, heroMetrics }) {
           {/* Orbital background rings */}
           <div className="hero-orbit orbit-one" />
           <div className="hero-orbit orbit-two" />
-        </div>
+        </motion.div>
 
         {/* Downward scrolling indicator link */}
         <a className="scroll-cue" href="#about">

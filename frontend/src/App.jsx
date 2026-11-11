@@ -79,6 +79,18 @@ function PortfolioApp() {
     };
   }, [theme]);
 
+  // Prevent page scrolling while the loading screen is active
+  useEffect(() => {
+    if (!isLoaderFinished) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isLoaderFinished]);
+
   // --------------------------------------------------------------------------
   // EFFECT 3: Scroll Reveal Animations
   // --------------------------------------------------------------------------

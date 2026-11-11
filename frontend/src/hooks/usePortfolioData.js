@@ -462,7 +462,8 @@ export function usePortfolioData() {
       const currentTheme = document.documentElement.dataset.theme || 'dark';
       applyDesignTokens(resolved.design, currentTheme);
 
-      const allRejected = [
+      // Consider API available if bootstrap or any content endpoint answered successfully
+      const hasSuccessfulResponse = [
         bootstrap,
         projects,
         skills,
@@ -471,11 +472,9 @@ export function usePortfolioData() {
         achievements,
         ticker,
         aboutStats,
-      ].every((res) => res.status === 'rejected');
+      ].some((res) => res.status === 'fulfilled' && res.value);
 
-      const isBootstrapValid = bootstrap.status === 'fulfilled' && bootstrap.value && typeof bootstrap.value === 'object' && bootstrap.value.site;
-
-      if (allRejected || !isBootstrapValid) {
+      if (!hasSuccessfulResponse) {
         const failReason = (bootstrap.status === 'rejected' && bootstrap.reason) ||
           new Error("The backend API could not be reached. (Render service may be waking up)");
         console.warn("API initialization failed:", failReason);
