@@ -1,24 +1,30 @@
 /**
  * ==============================================================================
- * Modern Sticky Glass Navigation Bar (Navbar.jsx)
+ * Website Header & Navigation Bar (Navbar.jsx)
  * ==============================================================================
+ *
+ * WHAT IS THIS COMPONENT?
+ * This is the fixed top bar that stays at the top of the browser as you scroll.
+ * 
+ * WHAT FEATURES DOES IT INCLUDE?
+ * 1. Brand Logo: The "H." monogram and "HIL PATEL / PORTFOLIO 2026" title.
+ * 2. Navigation Links: Dynamic links to sections (About, Projects, Skills, etc.).
+ * 3. Mobile Hamburger Menu: On small phone screens, collapses the links into an
+ *    expandable slide-out menu.
+ * 4. Theme Switcher Button: Lets visitors instantly flip between Dark Mode and Light Mode.
+ * 5. Direct Resume Button: Opens Hil Patel's latest PDF resume in a new browser tab.
  */
-
 import React, { useState } from 'react';
 import { Download, Sun, Moon, Menu, X, ArrowDownRight } from 'lucide-react';
-import { useScrolled, useActiveSection } from '../hooks';
-import { useTheme } from '../context/ThemeContext';
-import { usePortfolio } from '../context/PortfolioContext';
+import { useScrolled, useActiveSection } from '../utils/animations';
 
-export function Navbar() {
-  const { data } = usePortfolio();
-  const { site, navigation } = data;
-  const { theme, toggleTheme } = useTheme();
-
+export function Navbar({ site, navigation, theme, onToggleTheme }) {
+  // State to track whether the mobile menu dropdown is open or closed
   const [menuOpen, setMenuOpen] = useState(false);
   const isScrolled = useScrolled(20);
   const activeSection = useActiveSection();
 
+  // If the backend provided custom navigation items, use them; otherwise use standard defaults
   const navItems = navigation?.length > 0 ? navigation : [
     { label: "About", url: "#about" },
     { label: "Projects", url: "#projects" },
@@ -27,11 +33,12 @@ export function Navbar() {
     { label: "Certifications", url: "#certifications" },
   ];
 
+  // Resume PDF URL: Prioritizes admin-configured links from Django, falling back to local /resume.pdf
   const resumeUrl = site?.resume_download_url || site?.resume_url || site?.hero_secondary_button_url || "/resume.pdf";
 
   return (
     <header className={`topbar ${isScrolled ? "topbar-scrolled" : ""}`}>
-      {/* Brand Logo */}
+      {/* Brand logo that scrolls back to the top when clicked */}
       <a className="brand" href="#home" aria-label={`${site?.owner_name || 'Hil Patel'} home`}>
         <span className="brand-mark">
           {site?.brand_mark_initial || 'H'}<span>{site?.brand_mark_accent || '.'}</span>
@@ -41,8 +48,8 @@ export function Navbar() {
         </span>
       </a>
 
-      {/* Main Navigation Links */}
-      <nav className={`nav-links ${menuOpen ? "nav-open" : ""}`} aria-label="Main Navigation">
+      {/* Main navigation links list (collapses on mobile when menuOpen is false) */}
+      <nav className={`nav-links ${menuOpen ? "nav-open" : ""}`}>
         {navItems.map((item) => {
           const sectionId = item.url?.replace('#', '');
           const isActive = activeSection === sectionId;
@@ -54,13 +61,13 @@ export function Navbar() {
               className={isActive ? "nav-link-active" : ""}
               target={item.is_external ? "_blank" : undefined}
               rel={item.is_external ? "noreferrer" : undefined}
-              onClick={() => setMenuOpen(false)}
+              onClick={() => setMenuOpen(false)} // Closes mobile menu when a link is clicked
             >
               <span>{item.label}</span>
             </a>
           );
         })}
-
+        {/* Contact quick jump button */}
         <a
           className={`nav-contact ${activeSection === 'contact' ? "nav-contact-active" : ""}`}
           href="#contact"
@@ -70,50 +77,46 @@ export function Navbar() {
         </a>
       </nav>
 
-      {/* Top Bar Actions: Theme Toggle, Resume, Mobile Menu Toggle */}
+      {/* Action buttons on the right side: Theme toggle, Resume, and Mobile hamburger button */}
       <div className="top-actions">
         {/* Dark / Light Mode Switcher */}
         <button
           type="button"
           className="theme-toggle"
-          onClick={toggleTheme}
+          onClick={onToggleTheme}
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') {
               e.preventDefault();
-              toggleTheme();
+              onToggleTheme();
             }
           }}
           aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
           title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
         >
-          {theme === "dark" ? <Sun size={17} aria-hidden="true" /> : <Moon size={17} aria-hidden="true" />}
+          {theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}
         </button>
 
-        {/* Resume Button */}
+        {/* View / Download Resume Button */}
         <a
           className="resume-small"
           href={resumeUrl}
           target="_blank"
           rel="noopener noreferrer"
-          aria-label="View or download resume (PDF)"
         >
-          <span>Resume</span>
-          <Download size={14} aria-hidden="true" />
+          Resume <Download size={14} />
         </a>
 
-        {/* Mobile Hamburger Toggle */}
+        {/* Mobile Hamburger Menu Toggle Button */}
         <button
-          type="button"
           className="menu-toggle"
-          onClick={() => setMenuOpen((prev) => !prev)}
-          aria-expanded={menuOpen}
-          aria-label="Toggle navigation menu"
+          onClick={() => setMenuOpen(!menuOpen)}
+          aria-label="Toggle navigation"
         >
-          {menuOpen ? <X size={20} /> : <Menu size={20} />}
+          {menuOpen ? <X /> : <Menu />}
         </button>
       </div>
     </header>
   );
 }
 
-export default Navbar;
+

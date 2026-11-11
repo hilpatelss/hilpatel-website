@@ -2,8 +2,22 @@
  * ==============================================================================
  * About Section Component (AboutSection.jsx)
  * ==============================================================================
+ *
+ * WHAT IS THIS SECTION?
+ * This section tells the visitor who Hil Patel is in greater depth.
+ * It explains his analytical philosophy: "Curious by nature. Analytical by design."
+ *
+ * WHAT DOES IT DISPLAY?
+ * 1. Narrative Bio: Explains his focus on data cleaning, exploratory analysis,
+ *    and transforming messy datasets into practical business decisions.
+ * 2. Social Action Links: Direct links to LinkedIn profile, GitHub repository,
+ *    and a mailto link to start an email conversation.
+ * 3. Quick Stats Grid: 4 interactive summary cards highlighting key milestones:
+ *    - Featured projects count (e.g. 03)
+ *    - Tool categories (e.g. 05+)
+ *    - Certifications count
+ *    - An accented card showcasing his core mission with an icon.
  */
-
 import React from 'react';
 import {
   Linkedin,
@@ -24,52 +38,50 @@ import {
   Code2,
   Briefcase,
 } from 'lucide-react';
-import { AnimatedNumber } from '../components/AnimatedNumber';
-import { usePortfolio } from '../context/PortfolioContext';
 
-export function AboutSection({ sectionConfig }) {
-  const { data } = usePortfolio();
-  const { site, about_stats: stats } = data;
-
+export function AboutSection({ site, stats, sectionConfig }) {
+  // Configurable headings from Django CMS
   const indexLabel = sectionConfig?.index_label || "01 / ABOUT";
   const titleLine1 = sectionConfig?.title_line1 || "Curious by nature.";
   const titleLine2 = sectionConfig?.title_line2 || "Analytical by design.";
 
+  // Helper function to pick the right Lucide icon for cards that display a symbol instead of a number
   const renderStatIcon = (iconName) => {
     switch (iconName?.toLowerCase()) {
       case 'target':
-        return <Target size={28} aria-hidden="true" />;
+        return <Target size={28} />;
       case 'sparkles':
-        return <Sparkles size={28} aria-hidden="true" />;
+        return <Sparkles size={28} />;
       case 'barchart3':
       case 'barchart':
-        return <BarChart3 size={28} aria-hidden="true" />;
+        return <BarChart3 size={28} />;
       case 'trendingup':
-        return <TrendingUp size={28} aria-hidden="true" />;
+        return <TrendingUp size={28} />;
       case 'database':
-        return <Database size={28} aria-hidden="true" />;
+        return <Database size={28} />;
       case 'award':
-        return <Award size={28} aria-hidden="true" />;
+        return <Award size={28} />;
       case 'zap':
-        return <Zap size={28} aria-hidden="true" />;
+        return <Zap size={28} />;
       case 'piechart':
-        return <PieChart size={28} aria-hidden="true" />;
+        return <PieChart size={28} />;
       case 'brain':
-        return <Brain size={28} aria-hidden="true" />;
+        return <Brain size={28} />;
       case 'code2':
       case 'code':
-        return <Code2 size={28} aria-hidden="true" />;
+        return <Code2 size={28} />;
       case 'briefcase':
-        return <Briefcase size={28} aria-hidden="true" />;
+        return <Briefcase size={28} />;
       case 'chartnoaxescombined':
       default:
-        return <ChartNoAxesCombined size={28} aria-hidden="true" />;
+        return <ChartNoAxesCombined size={28} />;
     }
   };
 
   return (
     <section className="section-block about-section" id="about">
       <div className="section-wrap">
+        {/* Section Index & Title */}
         <div className="section-heading reveal">
           <span className="section-index">{indexLabel}</span>
           <h2>
@@ -80,29 +92,31 @@ export function AboutSection({ sectionConfig }) {
         </div>
 
         <div className="about-layout">
+          {/* Left Column: Bio Narrative & Direct Profile Links */}
           <div className="about-main reveal">
             <p className="large-copy">{site?.about_large_copy}</p>
             <p className="body-copy">{site?.about_body_copy}</p>
 
             <div className="about-links">
               {site?.linkedin_url && (
-                <a href={site.linkedin_url} target="_blank" rel="noreferrer" aria-label="LinkedIn profile">
-                  <Linkedin size={17} aria-hidden="true" /> LinkedIn <ExternalLink size={13} aria-hidden="true" />
+                <a href={site.linkedin_url} target="_blank" rel="noreferrer">
+                  <Linkedin size={17} /> LinkedIn <ExternalLink size={13} />
                 </a>
               )}
               {site?.github_url && (
-                <a href={site.github_url} target="_blank" rel="noreferrer" aria-label="GitHub profile">
-                  <Github size={17} aria-hidden="true" /> GitHub <ExternalLink size={13} aria-hidden="true" />
+                <a href={site.github_url} target="_blank" rel="noreferrer">
+                  <Github size={17} /> GitHub <ExternalLink size={13} />
                 </a>
               )}
               {site?.email && (
-                <a href={`mailto:${site.email}`} aria-label="Send email">
-                  <Mail size={17} aria-hidden="true" /> Email <ArrowRight size={14} aria-hidden="true" />
+                <a href={`mailto:${site.email}`}>
+                  <Mail size={17} /> Email <ArrowRight size={14} />
                 </a>
               )}
             </div>
           </div>
 
+          {/* Right Column: Grid of 4 Stat / Highlight Cards */}
           <div className="stats-grid reveal">
             {stats?.map((stat, idx) => {
               const isAccent = stat.is_accent;
@@ -113,9 +127,14 @@ export function AboutSection({ sectionConfig }) {
                   key={stat.id || idx}
                   className={`stat-card ${isAccent ? 'stat-card-accent' : ''}`}
                 >
+                  {/* If the stat has a number (like "03" or "05+"), show big text */}
                   {hasValidNumber ? (
-                    <AnimatedNumber value={stat.number} className="stat-number" />
+                    <span className="stat-number">
+                      {stat.number.replace('+', '')}
+                      {stat.number.includes('+') && <span className="stat-plus">+</span>}
+                    </span>
                   ) : (
+                    /* Otherwise, show a nice analytics icon */
                     <span className="stat-symbol">
                       {renderStatIcon(stat.icon_name)}
                     </span>
@@ -132,4 +151,4 @@ export function AboutSection({ sectionConfig }) {
   );
 }
 
-export default AboutSection;
+

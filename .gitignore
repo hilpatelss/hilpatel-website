@@ -24,7 +24,6 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
-frontend/src_v1_backup/
 
 # Media Uploads (keep directory structure, ignore user files)
 media/*

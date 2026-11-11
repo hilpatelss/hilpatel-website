@@ -11,7 +11,7 @@
  * 4. Loading Message: Dynamic typewriter in bright blue (#2196FF) with blinking cursor,
  *    cycling through 25 professional natural loading messages every 10 seconds.
  * 5. 4-Segment Progress Indicator: Horizontal rounded segments (42px × 5px)
- *    blinking sequentially one after another in an infinite loop every 650ms.
+ *    filling progressively every 650ms.
  * 6. Bottom Status Caption: "Initializing experience • Please wait" in muted gray (14px).
  * 7. Progressive States:
  *    - STAGE 1 (0–30s): Clean minimal loader with 10s message cycling.
@@ -22,16 +22,17 @@
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Linkedin, Github, Sun, Moon } from 'lucide-react';
+import { Linkedin, Github, Sun, Moon, Terminal } from 'lucide-react';
 import { getPersistedTheme } from '../context/ThemeContext';
 
 /**
- * 25 professional, natural loading messages describing initialization
- * without falsely claiming any incomplete operation succeeded.
- * Prominently features the reference message:
+ * 25 professional, natural loading messages describing the initialization
+ * process without falsely claiming any incomplete operation succeeded.
+ * Prominently features the reference messages:
+ * - "Negotiating with the database..."
  * - "Finalizing data synchronization..."
  */
-export const LOADING_MESSAGES = [
+const LOADING_MESSAGES = [
   "Negotiating with the database...",
   "Convincing the API to cooperate...",
   "Waking up the backend services...",
@@ -89,7 +90,6 @@ export function LoadingScreen({
   error = null,
   onRetry,
   onReadyToDismiss,
-  disableDismissal = false,
   theme,
   onToggleTheme,
   site,
@@ -117,14 +117,13 @@ export function LoadingScreen({
       }
       unplayedIndicesRef.current = pool;
     }
-    const nextIdx = unplayedIndicesRef.current.pop();
-    return typeof nextIdx === 'number' ? nextIdx : (currentIndex + 1) % LOADING_MESSAGES.length;
+    return unplayedIndicesRef.current.pop() ?? Math.floor(Math.random() * LOADING_MESSAGES.length);
   }, []);
 
   // Progressive typewriter text buffer
   const [displayedText, setDisplayedText] = useState('');
 
-  // 4-Segment progress indicator: 1 -> 2 -> 3 -> 4 -> 1 (sequential blinking)
+  // 4-Segment progress indicator: 1 -> 2 -> 3 -> 4
   const [activeSegment, setActiveSegment] = useState(1);
 
   // Fade-out transition trigger
@@ -184,8 +183,7 @@ export function LoadingScreen({
   }, [messageIndex, sessionKey]);
 
   // --------------------------------------------------------------------------
-  // 3. Four-Segment Progress Indicator: Sequential blinking 1 -> 2 -> 3 -> 4 -> 1
-  // Only one segment is active at any moment, running continuously every 650ms
+  // 3. Four-Segment Progress Indicator: Progressive fill 1 -> 2 -> 3 -> 4 -> 1
   // --------------------------------------------------------------------------
   useEffect(() => {
     const segmentInterval = setInterval(() => {
@@ -215,10 +213,8 @@ export function LoadingScreen({
 
   // --------------------------------------------------------------------------
   // 5. CRITICAL: Immediate Dismissal when API succeeds (no artificial delay)
-  // Suppressed if disableDismissal is true or onReadyToDismiss is not provided
   // --------------------------------------------------------------------------
   useEffect(() => {
-    if (disableDismissal || !onReadyToDismissRef.current) return;
     if (apiStatus !== 'success') return;
     if (hasTriggeredDismissRef.current) return;
 
@@ -237,7 +233,7 @@ export function LoadingScreen({
         clearTimeout(dismissTimerRef.current);
       }
     };
-  }, [apiStatus, disableDismissal]);
+  }, [apiStatus]);
 
   // Manual retry handler if visitor chooses to re-attempt after timeout
   const handleManualRetry = () => {
@@ -276,21 +272,7 @@ export function LoadingScreen({
       <div className="loader-card-content">
         {/* Terminal Icon: 44px × 44px, blue border, dark navy background, blue outer glow, vector prompt icon (>_) */}
         <div className="loader-terminal-icon" aria-hidden="true">
-          <svg
-            width="22"
-            height="22"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="loader-terminal-svg"
-            aria-hidden="true"
-          >
-            <polyline points="4 17 10 12 4 7" />
-            <line x1="12" y1="19" x2="20" y2="19" />
-          </svg>
+          <Terminal size={21} strokeWidth={2.4} className="loader-terminal-svg" />
         </div>
 
         {/* Main Heading: "Just a moment..." (bold 700, 27px, crisp white) */}
@@ -307,12 +289,12 @@ export function LoadingScreen({
               </p>
             </div>
 
-            {/* Four-Segment Progress Indicator (42px × 5px each, sequential blinking loop) */}
+            {/* Four-Segment Progress Indicator (42px × 5px each, progressive filling loop) */}
             <div className="loader-segmented-bar" aria-hidden="true">
-              <span className={`loader-segment ${activeSegment === 1 ? 'is-active' : ''}`} />
-              <span className={`loader-segment ${activeSegment === 2 ? 'is-active' : ''}`} />
-              <span className={`loader-segment ${activeSegment === 3 ? 'is-active' : ''}`} />
-              <span className={`loader-segment ${activeSegment === 4 ? 'is-active' : ''}`} />
+              <span className={`loader-segment ${activeSegment >= 1 ? 'is-active' : ''}`} />
+              <span className={`loader-segment ${activeSegment >= 2 ? 'is-active' : ''}`} />
+              <span className={`loader-segment ${activeSegment >= 3 ? 'is-active' : ''}`} />
+              <span className={`loader-segment ${activeSegment >= 4 ? 'is-active' : ''}`} />
             </div>
 
             {/* Bottom Status Text: "Initializing experience • Please wait" (14px muted gray) */}

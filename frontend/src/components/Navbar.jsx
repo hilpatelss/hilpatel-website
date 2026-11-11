@@ -16,13 +16,10 @@
  */
 import React, { useState } from 'react';
 import { Download, Sun, Moon, Menu, X, ArrowDownRight } from 'lucide-react';
-import { useScrolled, useActiveSection } from '../utils/animations';
 
 export function Navbar({ site, navigation, theme, onToggleTheme }) {
   // State to track whether the mobile menu dropdown is open or closed
   const [menuOpen, setMenuOpen] = useState(false);
-  const isScrolled = useScrolled(20);
-  const activeSection = useActiveSection();
 
   // If the backend provided custom navigation items, use them; otherwise use standard defaults
   const navItems = navigation?.length > 0 ? navigation : [
@@ -37,7 +34,7 @@ export function Navbar({ site, navigation, theme, onToggleTheme }) {
   const resumeUrl = site?.resume_download_url || site?.resume_url || site?.hero_secondary_button_url || "/resume.pdf";
 
   return (
-    <header className={`topbar ${isScrolled ? "topbar-scrolled" : ""}`}>
+    <header className="topbar">
       {/* Brand logo that scrolls back to the top when clicked */}
       <a className="brand" href="#home" aria-label={`${site?.owner_name || 'Hil Patel'} home`}>
         <span className="brand-mark">
@@ -50,26 +47,20 @@ export function Navbar({ site, navigation, theme, onToggleTheme }) {
 
       {/* Main navigation links list (collapses on mobile when menuOpen is false) */}
       <nav className={`nav-links ${menuOpen ? "nav-open" : ""}`}>
-        {navItems.map((item) => {
-          const sectionId = item.url?.replace('#', '');
-          const isActive = activeSection === sectionId;
-
-          return (
-            <a
-              key={item.label}
-              href={item.url}
-              className={isActive ? "nav-link-active" : ""}
-              target={item.is_external ? "_blank" : undefined}
-              rel={item.is_external ? "noreferrer" : undefined}
-              onClick={() => setMenuOpen(false)} // Closes mobile menu when a link is clicked
-            >
-              <span>{item.label}</span>
-            </a>
-          );
-        })}
+        {navItems.map((item) => (
+          <a
+            key={item.label}
+            href={item.url}
+            target={item.is_external ? "_blank" : undefined}
+            rel={item.is_external ? "noreferrer" : undefined}
+            onClick={() => setMenuOpen(false)} // Closes mobile menu when a link is clicked
+          >
+            {item.label}
+          </a>
+        ))}
         {/* Contact quick jump button */}
         <a
-          className={`nav-contact ${activeSection === 'contact' ? "nav-contact-active" : ""}`}
+          className="nav-contact"
           href="#contact"
           onClick={() => setMenuOpen(false)}
         >

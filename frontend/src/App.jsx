@@ -1,68 +1,71 @@
 /**
  * ==============================================================================
- * Master Application Component (App.jsx)
+ * Main Application Orchestrator Component (App.jsx)
  * ==============================================================================
  *
- * Ground-up recoded React application orchestrating:
- * 1. Global ThemeProvider (Apple dark / light mode)
- * 2. APIReadinessProvider (Strict finite state machine initialization)
- * 3. PortfolioProvider (Parallel data fetching & live fallbacks)
- * 4. MainLayout (Sticky navbar, sections, footer)
- * 5. Reference LoadingScreen (Terminal squircle, 10s non-repeating typewriter messages, 4-segment sequential blinking)
+ * WHAT IS THIS FILE?
+ * This is the master coordinator for the entire frontend website. Think of it as
+ * the director of a play: it decides when the loading screen should stay or go,
+ * fetches all data from the backend, passes settings to each section (About, Projects,
+ * Skills, etc.), and sets up nice visual scroll animations.
+ *
+ * KEY RESPONSIBILITIES:
+ * 1. Global Theme: Provides Dark/Light mode context to the whole site.
+ * 2. Data Fetching: Calls the backend API through `usePortfolioData`.
+ * 3. Loading Screen: Shows the animated loading typewriter until data is ready or times out.
+ * 4. Visitor Logging: Records anonymous visitor stats (device, screen size, page visited).
+ * 5. Scroll Animations: Uses the browser's `IntersectionObserver` to fade sections in as you scroll.
+ * 6. Dynamic Sections: Checks if any section was disabled in the Django admin panel.
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
-import { APIReadinessProvider, useAPIReadiness } from './context/APIReadinessContext';
-import { PortfolioProvider, usePortfolio } from './context/PortfolioContext';
-import { MainLayout } from './layouts/MainLayout';
-import { LoadingScreen } from './components/LoadingScreen';
+import { usePortfolioData } from './hooks/usePortfolioData';
 import { logVisitorVisit } from './services/visitorLog';
-
-import {
-  HeroSection,
-  TickerSection,
-  AboutSection,
-  ProjectsSection,
-  SkillsSection,
-  EducationSection,
-  CertificationsSection,
-  AchievementsSection,
-  ContactSection,
-} from './sections';
-
+import { LoadingScreen } from './components/LoadingScreen';
+import { Navbar } from './components/Navbar';
+import { Footer } from './components/Footer';
+import { HeroSection } from './sections/HeroSection';
+import { AboutSection } from './sections/AboutSection';
+import { ProjectsSection } from './sections/ProjectsSection';
+import { SkillsSection } from './sections/SkillsSection';
+import { EducationSection } from './sections/EducationSection';
+import { CertificationsSection } from './sections/CertificationsSection';
+import { AchievementsSection } from './sections/AchievementsSection';
+import { ContactSection } from './sections/ContactSection';
 import './styles/styles.css';
 
-/**
- * Global control: Whether the main portfolio website shell is rendered.
- * Set to false per user instruction ("don't display main page") to keep the loading
- * screen permanently visible with continuous 10s message cycling, animations, and theme switcher.
- */
-const SHOW_MAIN_PAGE = false;
-
-function PortfolioContent() {
+function PortfolioApp() {
+  // Theme state: allows switching between Apple-style light and dark modes
   const { theme, toggleTheme } = useTheme();
-  const readiness = useAPIReadiness();
-  const { data, error, apiStatus, refetch } = usePortfolio();
 
+  // Custom hook that pulls all portfolio data (projects, skills, about copy) from Django
+  const { data, loading, error, apiStatus, refetch, applyDesignTokens } = usePortfolioData();
+
+  // State to track if the introductory loading animation is completely done
   const [isLoaderFinished, setIsLoaderFinished] = useState(false);
 
-  // 1. Lock document scrolling while loading screen is visible or main page suppressed
+  // --------------------------------------------------------------------------
+  // EFFECT 1: Apply Dynamic Theme Variables
+  // --------------------------------------------------------------------------
+  // Whenever the active theme (light/dark) or design settings change, update
+  // the CSS custom properties (variables) on the webpage so colors update immediately.
   useEffect(() => {
-    if (!isLoaderFinished || !SHOW_MAIN_PAGE) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
+    if (data?.design) {
+      applyDesignTokens(data.design, theme);
     }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [isLoaderFinished]);
+  }, [theme, data?.design, applyDesignTokens]);
 
-  // 2. Anonymous visitor telemetry logging
+  // --------------------------------------------------------------------------
+  // EFFECT 2: Anonymous Visitor Telemetry
+  // --------------------------------------------------------------------------
+  // Records a lightweight, privacy-friendly log of the visit without asking for
+  // personal details or showing annoying popups. Also listens for page navigation.
   useEffect(() => {
+    // Record initial visit with the current active theme
     logVisitorVisit(theme);
 
+    // If the visitor clicks internal links (like #projects or #about), log the movement
     const handleRouteChange = () => {
       logVisitorVisit(theme);
     };
@@ -76,29 +79,41 @@ function PortfolioContent() {
     };
   }, [theme]);
 
-  // 3. Scroll Reveal Observer for subsequent content sections
+  // --------------------------------------------------------------------------
+  // EFFECT 3: Scroll Reveal Animations
+  // --------------------------------------------------------------------------
+  // Once the loading screen disappears, this watches for elements with the class
+  // 'reveal'. When the user scrolls down and an element enters the screen,
+  // we add the 'is-visible' class to smoothly fade it in.
   useEffect(() => {
-    if (!isLoaderFinished && !readiness.isInteractive) return;
+    if (!isLoaderFinished) return;
 
+    // IntersectionObserver is a browser tool that efficiently detects when an element is on screen
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             entry.target.classList.add('is-visible');
+            // Once it has animated in, stop observing it to save computer memory
             observer.unobserve(entry.target);
           }
         });
       },
-      { threshold: 0.12 }
+      { threshold: 0.12 } // Triggers when 12% of the element is visible in the viewport
     );
 
     const elements = document.querySelectorAll('.reveal');
     elements.forEach((el) => observer.observe(el));
 
+    // Cleanup observer if the component unmounts
     return () => observer.disconnect();
-  }, [isLoaderFinished, readiness.isInteractive, data]);
+  }, [isLoaderFinished, data]);
 
-  // Memoized section visibility configuration map
+  // --------------------------------------------------------------------------
+  // MEMOIZED SECTION CONFIGURATION
+  // --------------------------------------------------------------------------
+  // Converts the backend's array of section settings into an easy lookup object.
+  // Example: sectionConfigs['projects'] -> { is_visible: true, title: "Projects" }
   const sectionConfigs = useMemo(() => {
     const map = {};
     if (data.sections) {
@@ -109,107 +124,133 @@ function PortfolioContent() {
     return map;
   }, [data.sections]);
 
+  // Helper function to check if a specific section should be displayed
   const isSectionVisible = (key) => {
+    // If the section isn't mentioned in the backend config, default to showing it
     if (!sectionConfigs[key]) return true;
     return sectionConfigs[key].is_visible !== false;
   };
 
-  const handleRetry = () => {
-    readiness.resetReadiness();
-    refetch();
-  };
-
   return (
     <>
-      {/* Step 1: Loading Screen overlay (Reference Design) */}
-      {(!isLoaderFinished || !SHOW_MAIN_PAGE) && (
+      {/* 
+        Step 1: If the site is still loading or connecting to the backend,
+        display the typewriter loading screen with 30s delay warnings and 90s timeout fallback.
+      */}
+      {!isLoaderFinished && (
         <LoadingScreen
           apiStatus={apiStatus}
           error={error}
-          onRetry={handleRetry}
-          disableDismissal={!SHOW_MAIN_PAGE}
-          onReadyToDismiss={
-            SHOW_MAIN_PAGE
-              ? () => {
-                  setIsLoaderFinished(true);
-                  readiness.triggerEntranceSequence();
-                }
-              : undefined
-          }
+          onRetry={refetch}
+          onReadyToDismiss={() => setIsLoaderFinished(true)}
           theme={theme}
           onToggleTheme={toggleTheme}
           site={data?.site}
         />
       )}
 
-      {/* Step 2: Main Website Shell (Suppressed when SHOW_MAIN_PAGE is false) */}
-      {SHOW_MAIN_PAGE && (
-        <div
-          className="site-shell"
-          style={{
-            visibility: readiness.isApiReady || isLoaderFinished ? 'visible' : 'hidden',
-            opacity: isLoaderFinished ? 1 : 0,
-            pointerEvents: isLoaderFinished ? 'auto' : 'none',
-            transition: 'opacity 0.4s ease-out',
-          }}
-          aria-hidden={!isLoaderFinished}
-        >
-          <MainLayout>
-            {/* 1. Hero Section with dynamic readiness entrance animation */}
-            <HeroSection />
+      {/* 
+        Step 2: Main portfolio content shell.
+        Hidden with visibility: hidden until the API is available and loader finishes.
+      */}
+      <div
+        className="site-shell"
+        style={{
+          visibility: (apiStatus === 'success' || isLoaderFinished) ? 'visible' : 'hidden',
+          opacity: isLoaderFinished ? 1 : 0,
+          pointerEvents: isLoaderFinished ? 'auto' : 'none',
+          transition: 'opacity 0.4s ease-out'
+        }}
+        aria-hidden={!isLoaderFinished}
+      >
+        {/* Top navigation bar with menu links and dark/light mode toggle */}
+        <Navbar
+          site={data.site}
+          navigation={data.navigation}
+          theme={theme}
+          onToggleTheme={toggleTheme}
+        />
 
-            {/* 2. Core skills ticker ribbon */}
-            {data.ticker?.length > 0 && <TickerSection />}
+          {/* Main content area containing each portfolio section */}
+          <main>
+            {/* Hero section: Big welcoming headline and core introduction */}
+            <HeroSection site={data.site} heroMetrics={data.hero_metrics} />
 
-            {/* 3. About Me Section */}
+            {/* About Me Section */}
             {isSectionVisible('about') && (
-              <AboutSection sectionConfig={sectionConfigs['about']} />
+              <AboutSection
+                site={data.site}
+                stats={data.about_stats}
+                sectionConfig={sectionConfigs['about']}
+              />
             )}
 
-            {/* 4. Featured Projects Section */}
+            {/* Featured Projects Section */}
             {isSectionVisible('projects') && (
-              <ProjectsSection sectionConfig={sectionConfigs['projects']} />
+              <ProjectsSection
+                projects={data.projects}
+                site={data.site}
+                sectionConfig={sectionConfigs['projects']}
+              />
             )}
 
-            {/* 5. Technical Skills Toolkit Section */}
+            {/* Technical Skills & Tools Section */}
             {isSectionVisible('skills') && (
-              <SkillsSection sectionConfig={sectionConfigs['skills']} />
+              <SkillsSection
+                skills={data.skills}
+                sectionConfig={sectionConfigs['skills']}
+              />
             )}
 
-            {/* 6. Education Timeline Section */}
+            {/* Education History Section */}
             {isSectionVisible('education') && (
-              <EducationSection sectionConfig={sectionConfigs['education']} />
+              <EducationSection
+                education={data.education}
+                sectionConfig={sectionConfigs['education']}
+              />
             )}
 
-            {/* 7. Professional Certifications Section */}
+            {/* Professional Certifications Section */}
             {isSectionVisible('certifications') && (
-              <CertificationsSection sectionConfig={sectionConfigs['certifications']} />
+              <CertificationsSection
+                certifications={data.certifications}
+                sectionConfig={sectionConfigs['certifications']}
+              />
             )}
 
-            {/* 8. Highlights & Milestones Section */}
+            {/* Achievements & Milestones Section */}
             {isSectionVisible('achievements') && (
-              <AchievementsSection sectionConfig={sectionConfigs['achievements']} />
+              <AchievementsSection
+                achievements={data.achievements}
+                sectionConfig={sectionConfigs['achievements']}
+              />
             )}
 
-            {/* 9. Contact Inquiry Section */}
+            {/* Contact Form Section */}
             {isSectionVisible('contact') && (
-              <ContactSection sectionConfig={sectionConfigs['contact']} />
+              <ContactSection
+                site={data.site}
+                sectionConfig={sectionConfigs['contact']}
+              />
             )}
-          </MainLayout>
+          </main>
+
+          {/* Website Footer with copyright and social links */}
+          <Footer site={data.site} />
         </div>
-      )}
     </>
   );
 }
 
+/**
+ * Top-level root component.
+ * Wraps PortfolioApp with the ThemeProvider so every child component can access
+ * the current theme (light or dark) and switch themes whenever requested.
+ */
 export function App() {
   return (
     <ThemeProvider>
-      <APIReadinessProvider>
-        <PortfolioProvider>
-          <PortfolioContent />
-        </PortfolioProvider>
-      </APIReadinessProvider>
+      <PortfolioApp />
     </ThemeProvider>
   );
 }

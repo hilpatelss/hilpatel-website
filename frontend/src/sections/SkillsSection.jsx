@@ -1,17 +1,26 @@
 /**
  * ==============================================================================
- * Technical Skills Section (SkillsSection.jsx)
+ * Technical Skills & Toolkit Section (SkillsSection.jsx)
  * ==============================================================================
+ *
+ * WHAT IS THIS SECTION?
+ * This section catalogs Hil Patel's technical competencies, programming languages,
+ * and data visualization tools.
+ *
+ * WHAT ARE THE MAIN FEATURES?
+ * 1. UNIX Terminal Card (Left): A playful CLI-style terminal window that runs
+ *    `whoami` and `toolkit --list`, signaling strong technical fluency in a creative way.
+ * 2. Categorized Skill Groups (Right): Organized rows grouped by discipline:
+ *    - Languages (Python, SQL)
+ *    - Data Analysis (Pandas, NumPy, EDA, Data Cleaning)
+ *    - Visualization (Power BI, Excel, DAX, Matplotlib)
+ *    - Databases (PostgreSQL, SQLite)
+ *    - Development Tools (Git, GitHub, VS Code, Django, REST APIs)
  */
-
 import React from 'react';
-import { TerminalCard } from '../components/TerminalCard';
-import { usePortfolio } from '../context/PortfolioContext';
 
-export function SkillsSection({ sectionConfig }) {
-  const { data } = usePortfolio();
-  const { skills } = data;
-
+export function SkillsSection({ skills, sectionConfig }) {
+  // Configurable headings from Django CMS
   const indexLabel = sectionConfig?.index_label || "03 / TOOLKIT";
   const titleLine1 = sectionConfig?.title_line1 || "Tools I use to";
   const titleLine2 = sectionConfig?.title_line2 || "find the story.";
@@ -19,6 +28,7 @@ export function SkillsSection({ sectionConfig }) {
   return (
     <section className="section-block skills-section" id="skills">
       <div className="section-wrap">
+        {/* Section Heading */}
         <div className="section-heading reveal">
           <span className="section-index">{indexLabel}</span>
           <h2>
@@ -29,9 +39,38 @@ export function SkillsSection({ sectionConfig }) {
         </div>
 
         <div className="skills-layout">
-          {/* Left Column: UNIX Terminal Card */}
+          {/* Left Column: Simulated UNIX Terminal Card */}
           <div className="skills-intro reveal">
-            <TerminalCard />
+            <div className="terminal-card">
+              <div className="terminal-bar">
+                <span />
+                <span />
+                <span />
+                <small>hil@portfolio:~</small>
+              </div>
+              <div className="terminal-body">
+                <p>
+                  <b>$</b> whoami
+                </p>
+                <strong>data_analyst</strong>
+                <p>
+                  <b>$</b> toolkit --list
+                </p>
+                <div className="terminal-list">
+                  <span>01</span> analysis & cleaning
+                  <br />
+                  <span>02</span> business intelligence
+                  <br />
+                  <span>03</span> databases & APIs
+                  <br />
+                  <span>04</span> data storytelling
+                </div>
+                <p className="terminal-ready">
+                  <b>✓</b> ready to explore
+                </p>
+                <span className="cursor">_</span>
+              </div>
+            </div>
             <p className="body-copy">
               A practical toolkit for preparing data, analysing patterns, and
               presenting findings clearly.
@@ -59,7 +98,7 @@ export function SkillsSection({ sectionConfig }) {
               ))
             ) : (
               <div className="empty-state" style={{ padding: '2rem 0', opacity: 0.7 }}>
-                <p>Skills catalog is loading...</p>
+                <p>No skills configured at this time.</p>
               </div>
             )}
           </div>
@@ -69,4 +108,4 @@ export function SkillsSection({ sectionConfig }) {
   );
 }
 
-export default SkillsSection;
+

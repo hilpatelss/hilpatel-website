@@ -216,7 +216,7 @@ const DEFAULT_FALLBACKS = {
   ],
 };
 
-export function usePortfolioData(readiness = null) {
+export function usePortfolioData() {
   // Holds the active portfolio content (starts with defaults, then updates with backend data)
   const [data, setData] = useState(DEFAULT_FALLBACKS);
   // Tracks whether the initial fetch is currently in progress
@@ -360,9 +360,6 @@ export function usePortfolioData(readiness = null) {
     setLoading(true);
     setError(null);
     setApiStatus('pending');
-    if (readiness?.markApiLoading) {
-      readiness.markApiLoading();
-    }
 
     try {
       // Parallel fetch of bootstrap and content
@@ -389,10 +386,6 @@ export function usePortfolioData(readiness = null) {
       // If a retry or newer fetch was triggered in the meantime, discard stale response
       if (currentRequestId !== requestIdRef.current) {
         return;
-      }
-
-      if (readiness?.markApiValidating) {
-        readiness.markApiValidating();
       }
 
       const resolved = { ...DEFAULT_FALLBACKS };
@@ -469,8 +462,7 @@ export function usePortfolioData(readiness = null) {
       const currentTheme = document.documentElement.dataset.theme || 'dark';
       applyDesignTokens(resolved.design, currentTheme);
 
-      // Consider API available if bootstrap or any content endpoint answered successfully
-      const hasSuccessfulResponse = [
+      const allRejected = [
         bootstrap,
         projects,
         skills,
@@ -479,26 +471,22 @@ export function usePortfolioData(readiness = null) {
         achievements,
         ticker,
         aboutStats,
-      ].some((res) => res.status === 'fulfilled' && res.value);
+      ].every((res) => res.status === 'rejected');
 
-      if (!hasSuccessfulResponse) {
+      const isBootstrapValid = bootstrap.status === 'fulfilled' && bootstrap.value && typeof bootstrap.value === 'object' && bootstrap.value.site;
+
+      if (allRejected || !isBootstrapValid) {
         const failReason = (bootstrap.status === 'rejected' && bootstrap.reason) ||
           new Error("The backend API could not be reached. (Render service may be waking up)");
         console.warn("API initialization failed:", failReason);
         setError(failReason);
         setApiStatus('error');
-        if (readiness?.markApiError) {
-          readiness.markApiError(failReason);
-        }
         // Automatically schedule refetch attempt so that when the API becomes available,
         // live data is retrieved and the loading/timeout screen is immediately dismissed!
         scheduleRetry(4000);
       } else {
         setError(null);
         setApiStatus('success');
-        if (readiness?.markApiReady) {
-          readiness.markApiReady();
-        }
         clearRetry();
       }
     } catch (err) {
@@ -506,9 +494,6 @@ export function usePortfolioData(readiness = null) {
       console.warn("Failed to reach Django API, using presentation fallbacks:", err);
       setError(err);
       setApiStatus('error');
-      if (readiness?.markApiError) {
-        readiness.markApiError(err);
-      }
       // Automatically schedule refetch attempt on network error
       scheduleRetry(4000);
     } finally {
